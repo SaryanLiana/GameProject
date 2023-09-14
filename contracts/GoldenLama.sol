@@ -4,9 +4,18 @@ pragma solidity 0.8.19;
 
 contract GoldenLama {
 
-    struct itemInfo {
-        string name;
+    struct ItemInfo {
+        uint256 purchaseType;
         uint256 price;
+    }
+
+    struct UserInfo {
+        uint256 userId;
+        uint256 refId;
+        uint256 dateOfEntry;
+        uint256 profitDept;
+        uint256 balanceOfCocktail;
+        uint256 balanceOfCoin;
     }
 
     uint8 private constant SAND_PURCHASE_TYPE = 0;
@@ -43,11 +52,87 @@ contract GoldenLama {
     uint8 private constant REFERRER_PROCENT_OF_COIN = 7;
 
     uint256[30] public items;
+    address bankAddress;
+    address owner;
+    uint256 public priceOfCocktail;
+    uint256 public priceOfGoldenCoin;
+    mapping(address => UserInfo) userInfo;
+
+    modifier onlyOwner {
+        require(msg.sender == owner, "GoldenLama:: Caller is not the owner!");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    //events
+    event BankAddressSet(address indexed wallet, uint256 indexed timestamp);
+    event CocktailBought(address indexed buyer, uint256 indexed count, uint256 indexed timestamp);
+    event CocktailExchange(address indexed user, uint256 indexed count, uint256 indexed timestamp);
+    event ReferralsCountBonus(address indexed user, uint256 indexed bonusAmount, uint256 indexed timestamp);
+    event BoughtTicketsCountBonus(address indexed user, uint256 indexed bonusAmount, uint256 indexed timestamp);
+    event SoldTicketsCountBonus(address indexed user, uint256 indexed bonusAmount, uint256 indexed timestamp);
+    event TicketNumberSet(uint256 indexed ticketNumber, uint256 indexed timestamp);
+    event TicketPriceSet(uint256 indexed ticketPrice, uint256 indexed timestamp);
+    event MonthlyJackpotAddressSet(address indexed monthlyJackpot, uint256 indexed timestamp);
+    event TicketNFTAddressSet(address indexed NFTAddress, uint256 indexed timestamp);
+    event StableCoinAddressSet(address indexed NFTAddress, uint256 indexed timestamp);
+    event NewCycleStarted(address indexed caller, uint256 cycleCount, uint256 indexed timestamp);
+    event WinnersRewarded(address indexed caller, uint256 indexed timestamp);
+    event MonthlyJackpotExecuted(address indexed winner, uint256 indexed newJackpotStartingTime);
+
+    receive() external payable {}
+
+    fallback() external payable {}
+
+    function setBankAddress(address _bankAddress) external onlyOwner {
+        bankAddress = _bankAddress;
+        emit BankAddressSet(_bankAddress, block.timestamp);
+    }
 
     function buyCocktail(uint256 _count) external payable {
-        require(msg.value >= (_count * 30000000000000), "GoldenLama:: Insufficient funds for buying cocktail");
+        require(_count > 0, "GoldenLama:: Cocktails count to buy should be greater than 0!");
+        require((msg.sender).balance >= msg.value, "GoldenLama:: Insufficient user balance!");
+        require(msg.value >= (_count * priceOfCocktail), "GoldenLama:: Insufficient funds for buying cocktails!");
+        uint256 amountToReturn = msg.value - (_count * priceOfCocktail); 
+        uint256 amountToTransfer = msg.value - amountToReturn;
 
+        if(amountToReturn > 0) {
+            payable(msg.sender).transfer(amountToReturn);
+        }
+        payable(owner).transfer(amountToTransfer / 10);
+        payable(bankAddress).transfer(amountToTransfer * 9 / 10);
+
+        userInfo[msg.sender].balanceOfCocktail += _count;
+        emit CocktailBought(msg.sender, _count, block.timestamp);
     }
+
+    function exchangeCocktailsWithCoins(uint256 _count) external {
+        require(_count > 0,"GoldenLama:: Cocktails count to exchange should be greater than 0!");
+        require(userInfo[msg.sender].balanceOfCocktail >= _count, "GoldenLama:: Insufficient balance of cocktails!");
+        userInfo[msg.sender].balanceOfCocktail -= _count;
+        userInfo[msg.sender].balanceOfCoin += _count * 100;
+        emit CocktailExchange(msg.sender, _count, block.timestamp);
+    }
+
+    function sellCois(uint256 _count) external {
+        require(userInfo[msg.sender].balanceOfCoin >= _count, "GoldenLama:: Insufficient balance of cocktails!");
+        userInfo[msg.sender].balanceOfCoin -= _count;
+        payable(msg.sender).transfer();
+    }
+
+
+
+
+
+
+
+
+
+
+
     
     struct Tower {
         uint256 runes;
