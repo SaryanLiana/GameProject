@@ -7,6 +7,52 @@ contract GoldenLama {
     struct ItemInfo {
         uint256 purchaseType;
         uint256 price;
+        uint256 profit;
+    }
+    
+    struct LevelOneItems {
+        uint256 countOfSand;
+        uint256 countOfSky;
+        uint256 countOfSea;
+        uint256 countOfCloud;
+        uint256 countOfSun;
+        uint256 countOfGull;
+    }
+
+    struct LevelTwoItems {
+        uint256 countOfPalm;
+        uint256 countOfCoconuts;
+        uint256 countOfGoldFish;
+        uint256 countOfCrab;
+        uint256 countOfShells;
+        uint256 countOfColoredStones;
+    }
+    
+    struct LevelThreeItems {
+        uint256 countOfSandCastel;
+        uint256 countOfChaiseLounge;
+        uint256 countOfSuncreen;
+        uint256 countOfBasket;
+        uint256 countOfTowel;
+        uint256 countOfUmbrella;
+    }
+    
+    struct LevelFourItems {
+        uint256 countOfBoa;
+        uint256 countOfSunglasses;
+        uint256 countOfBaseballCap;
+        uint256 countOfSwimsuitTop;
+        uint256 countOfSwimsuitBriefs;
+        uint256 countOfCrocs;
+    }
+    
+    struct LevelFiveItems {
+        uint256 countOfFlamingoRing;
+        uint256 countOfCoctail;
+        uint256 countOfGoldenColor;
+        uint256 countOfSmartWatch;
+        uint256 countOfSmartphone;
+        uint256 countOfYacht;
     }
 
     struct UserInfo {
@@ -51,21 +97,22 @@ contract GoldenLama {
     uint8 private constant REFERRER_PROCENT_OF_COCKTAILS = 7;
     uint8 private constant REFERRER_PROCENT_OF_COIN = 7;
 
-    uint256[30] public items;
+    ItemInfo[30] public itemInfo;
+    uint256 public usersCount;
     address bankAddress;
     address owner;
     uint256 public priceOfCocktail;
+    uint256 public priceOfCoins;
     uint256 public priceOfGoldenCoin;
     mapping(address => UserInfo) userInfo;
-
-    modifier onlyOwner {
-        require(msg.sender == owner, "GoldenLama:: Caller is not the owner!");
-        _;
-    }
-
-    constructor() {
-        owner = msg.sender;
-    }
+    mapping(address => LevelOneItems) levelOneItems;
+    mapping(address => LevelTwoItems) levelTwoItems;
+    mapping(address => LevelThreeItems) levelThreeItems;
+    mapping(address => LevelFourItems) levelFourItems;
+    mapping(address => LevelFiveItems) levelFiveItems;
+    mapping(address => address) public addressToHisReferrer; // Referrer is higher in the tree
+    mapping(uint256 => address) public idToHisAddress; // ID is for referral system, user can invite other users by his id
+    mapping(address => bool) public isAdmin;
 
     //events
     event BankAddressSet(address indexed wallet, uint256 indexed timestamp);
@@ -83,9 +130,34 @@ contract GoldenLama {
     event WinnersRewarded(address indexed caller, uint256 indexed timestamp);
     event MonthlyJackpotExecuted(address indexed winner, uint256 indexed newJackpotStartingTime);
 
+    modifier onlyOwner {
+        require(msg.sender == owner, "GoldenLama:: Caller is not the owner!");
+        _;
+    }
+
+    modifier onlyAdmin(){
+        require(isAdmin[msg.sender] || msg.sender == owner, "GoldenLama:: This function can be called only by admins");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+        usersCount = 1;
+    }
+
     receive() external payable {}
 
     fallback() external payable {}
+
+    function addUserToMlm(address _user, uint256 _refId) external onlyAdmin {
+        require(!(addressToHisReferrer[_user] != address(0) && idToHisAddress[_refId] != addressToHisReferrer[_user]),"GoldenLama:: your referrer is already set and it is another user"); //checking refid
+        require(_refId < usersCount, "GoldenLama:: Please provide right ID!");
+
+        userInfo[_user].refId = _refId;
+        userInfo[_user].userId = usersCount;
+        idToHisAddress[usersCount] = _user;
+        ++usersCount;
+    }
 
     function setBankAddress(address _bankAddress) external onlyOwner {
         bankAddress = _bankAddress;
@@ -117,17 +189,127 @@ contract GoldenLama {
         emit CocktailExchange(msg.sender, _count, block.timestamp);
     }
 
+    // this function is not working as I want
     function sellCois(uint256 _count) external {
         require(userInfo[msg.sender].balanceOfCoin >= _count, "GoldenLama:: Insufficient balance of cocktails!");
         userInfo[msg.sender].balanceOfCoin -= _count;
-        payable(msg.sender).transfer();
+        uint256 amountToTransfer = _count * priceOfCoins;
+        payable(msg.sender).transfer(amountToTransfer); 
     }
 
+    /**
+    * @notice Function - setAdminStatus
+    * @dev Sets Admin status.
+    * @param _admin Address of Admin.
+    * @param _status Boolean variable for enabling or disabling Admin.
+    * @dev Only the contract owner can execute this function.
+    */
+    function setAdminStatus(address _admin, bool _status) external onlyOwner{
+        isAdmin[_admin] = _status;
+    }
 
+    function setSuperBundles(ItemInfo[30] calldata _items) external onlyOwner {
+        itemInfo = _items;
+    }
 
+    function purchaseLevelOneItems(uint8 _itemType, uint256 _count) external {
+        require(_count > 0, "GoldenLama:: You cann't buy 0 item!");
+        require(userInfo[msg.sender].balanceOfCocktail >= _count * itemInfo[_itemType].price, "GoldenLama:: Insufficient balance for buyind Level 1 item!");
+        _validateLevelOneItemsTypes(_itemType);
+        if(_itemType == 0){
+            levelOneItems[msg.sender].countOfSand += _count;
+        } else if(_itemType == 1) {
+            require(levelOneItems[msg.sender].countOfSand > 0, "GoldenLama:: You must buy the previous one!");
+            levelOneItems[msg.sender].countOfSky += _count;
+        } else if(_itemType == 2) {
+            require(levelOneItems[msg.sender].countOfSand > 0 && levelOneItems[msg.sender].countOfSky > 0, "GoldenLama:: You must buy the previous items!");
+            levelOneItems[msg.sender].countOfSea += _count;
+        } else if(_itemType == 3) {
+            require(levelOneItems[msg.sender].countOfSand > 0 && levelOneItems[msg.sender].countOfSky > 0 && levelOneItems[msg.sender].countOfSea > 0, "GoldenLama:: You must buy the previous items!");
+            levelOneItems[msg.sender].countOfCloud += _count;
+        } else if(_itemType == 4) {
+            require(levelOneItems[msg.sender].countOfSand > 0 && levelOneItems[msg.sender].countOfSky > 0 && levelOneItems[msg.sender].countOfSea > 0 && levelOneItems[msg.sender].countOfCloud > 0, "GoldenLama:: You must buy the previous items!");
+            levelOneItems[msg.sender].countOfSun += _count;
+        } else {
+            require(levelOneItems[msg.sender].countOfSand > 0 && levelOneItems[msg.sender].countOfSky > 0 && levelOneItems[msg.sender].countOfSea > 0 && levelOneItems[msg.sender].countOfCloud > 0 && levelOneItems[msg.sender].countOfSun > 0, "GoldenLama:: You must buy the previous items!");
+            levelOneItems[msg.sender].countOfGull += _count;
+        }
+    }
 
+    function purchaseLevelTwoItems(uint8 _itemType, uint256 _count) external {
+        require(_count > 0, "You cann't buy 0 item!");
+        _validateLevelTwoItemsTypes(_itemType);
+    }
 
+    function purchaseLevelThreeItems(uint8 _itemType, uint256 _count) external {
+        require(_count > 0, "You cann't buy 0 item!");
+        _validateLevelThreeItemsTypes(_itemType);
+    }
 
+    function purchaseLevelFourItems(uint8 _itemType, uint256 _count) external {
+        require(_count > 0, "You cann't buy 0 item!");
+        _validateLevelFourItemsTypes(_itemType);
+    }
+
+    function purchaseLevelFiveItems(uint8 _itemType, uint256 _count) external {
+        require(_count > 0, "You cann't buy 0 item!");
+        _validateLevelFiveItemsTypes(_itemType);
+    }
+
+    function _validateLevelOneItemsTypes(uint8 _itemType) private pure {
+        require(
+            _itemType == SAND_PURCHASE_TYPE || 
+            _itemType == SEA_PURCHASE_TYPE || 
+            _itemType == SKY_PURCHASE_TYPE ||
+            _itemType == CLOUD_PURCHASE_TYPE ||
+            _itemType == SUN_PURCHASE_TYPE ||
+            _itemType == GULL_PURCHASE_TYPE
+        );
+    }
+    
+    function _validateLevelTwoItemsTypes(uint8 _itemType) private pure {
+        require(
+            _itemType == PALM_PURCHASE_TYPE || 
+            _itemType == COCONUTS_PURCHASE_TYPE || 
+            _itemType == GOLD_FISH_PURCHASE_TYPE ||
+            _itemType == CRAB_PURCHASE_TYPE ||
+            _itemType == SHELLS_PURCHASE_TYPE ||
+            _itemType == COLORED_STONES_PURCHASE_TYPE
+        );
+    }
+
+    function _validateLevelThreeItemsTypes(uint8 _itemType) private pure {
+        require(
+            _itemType == SAND_CASTEL_PURCHASE_TYPE || 
+            _itemType == CHAISE_LOUNGE_PURCHASE_TYPE || 
+            _itemType == SUNSCREEN_PURCHASE_TYPE ||
+            _itemType == BASKET_PURCHASE_TYPE ||
+            _itemType == TOWEL_PURCHASE_TYPE ||
+            _itemType == UMBRELLA_PURCHASE_TYPE
+        );
+    }
+
+    function _validateLevelFourItemsTypes(uint8 _itemType) private pure {
+        require(
+            _itemType == BOA_PURCHASE_TYPE || 
+            _itemType == SUNGLASSES_PURCHASE_TYPE || 
+            _itemType == BASEBALL_CAP_PURCHASE_TYPE ||
+            _itemType == SWIMSUIT_TOP_PURCHASE_TYPE ||
+            _itemType == SWIMSUIT_BRIEFS_PURCHASE_TYPE ||
+            _itemType == CROCS_PURCHASE_TYPE
+        );
+    }
+
+    function _validateLevelFiveItemsTypes(uint8 _itemType) private pure {
+        require(
+            _itemType == FLAMINGO_RING_PURCHASE_TYPE || 
+            _itemType == COCKTAIL_PURCHASE_TYPE || 
+            _itemType == GOLDEN_COLOR_PURCHASE_TYPE ||
+            _itemType == SMART_WATCH_PURCHASE_TYPE ||
+            _itemType == SMARTPHONE_PURCHASE_TYPE ||
+            _itemType == YACHT_PURCHASE_TYPE
+        );
+    }
 
 
 
