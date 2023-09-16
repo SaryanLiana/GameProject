@@ -7,7 +7,7 @@ contract GoldenLama {
     struct ItemInfo {
         uint256 purchaseType;
         uint256 price;
-        uint256 profit;
+        uint256 dailyProfit;
     }
     
     struct LevelOneItems {
