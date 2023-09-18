@@ -163,6 +163,8 @@ contract GoldenLama {
         userInfo[_user].userId = usersCount;
         idToHisAddress[usersCount] = _user;
         ++usersCount;
+        address referrer = idToHisAddress[_refId];
+        addressToHisReferrer[_user] = referrer;
     }
 
     function setBankAddress(address _bankAddress) external onlyOwner {
@@ -184,6 +186,13 @@ contract GoldenLama {
         payable(bankAddress).transfer(amountToTransfer * 9 / 10);
 
         userInfo[msg.sender].balanceOfCocktail += _count;
+
+        if(addressToHisReferrer[msg.sender] != address(0)) {
+            uint256 countOfCoctails = amountToTransfer * 7 / 1000;
+            uint256 countOfCoins = amountToTransfer * 3 / 1000;
+
+        }
+
         emit CocktailBought(msg.sender, _count, block.timestamp);
     }
 
