@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.19;
+pragma solidity ^0.8.19;
 
 contract GoldenLama {
 
@@ -128,7 +128,6 @@ contract GoldenLama {
     uint8 private constant SMARTPHONE_PURCHASE_TYPE = 28;
     uint8 private constant YACHT_PURCHASE_TYPE = 29;
 
-    address public bankAddress;
     address public owner;
     uint256 public usersCount;
     uint256 public priceOfCocktail;
@@ -147,7 +146,6 @@ contract GoldenLama {
     mapping(address => bool) public isAdmin;
 
     //events
-    event BankAddressSet(address indexed wallet, uint256 indexed timestamp);
     event CocktailBought(address indexed buyer, uint256 indexed count, uint256 indexed timestamp);
     event CocktailSwap(address indexed user, uint256 indexed count, uint256 indexed timestamp);
     event LevelOneItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
@@ -176,6 +174,14 @@ contract GoldenLama {
 
     fallback() external payable {}
 
+    function setAdminStatus(address _admin, bool _status) external onlyOwner{
+        isAdmin[_admin] = _status;
+    }
+
+    function setItems(ItemInfo[30] calldata _items) external onlyOwner {
+        itemInfo = _items;
+    }
+
     function addUserToMlm(address _user, uint256 _refId) external onlyAdmin {
         require(!(addressToHisReferrer[_user] != address(0) && idToHisAddress[_refId] != addressToHisReferrer[_user]),"GoldenLama:: your referrer is already set and it is another user"); //checking refid
         require(_refId < usersCount, "GoldenLama:: Please provide right ID!");
@@ -186,11 +192,6 @@ contract GoldenLama {
         ++usersCount;
         address referrer = idToHisAddress[_refId];
         addressToHisReferrer[_user] = referrer;
-    }
-
-    function setBankAddress(address _bankAddress) external onlyOwner {
-        bankAddress = _bankAddress;
-        emit BankAddressSet(_bankAddress, block.timestamp);
     }
 
     function buyCocktail(uint256 _count) external payable {
@@ -204,7 +205,7 @@ contract GoldenLama {
             payable(msg.sender).transfer(amountToReturn);
         }
         payable(owner).transfer(amountToTransfer / 10);
-        payable(bankAddress).transfer(amountToTransfer * 9 / 10);
+        payable(address(this)).transfer(amountToTransfer * 9 / 10);
 
         userInfo[msg.sender].balanceOfCocktail += _count;
 
@@ -227,20 +228,14 @@ contract GoldenLama {
         emit CocktailSwap(msg.sender, _count, block.timestamp);
     }
 
-    // this function is not working as I want
     function sellCois(uint256 _count) external {
         require(userInfo[msg.sender].balanceOfCoin >= _count, "GoldenLama:: Insufficient balance of cocktails!");
         userInfo[msg.sender].balanceOfCoin -= _count;
         uint256 amountToTransfer = _count * priceOfCoins;
-        payable(msg.sender).transfer(amountToTransfer); 
-    }
+        // payable(msg.sender).transfer(amountToTransfer); 
 
-    function setAdminStatus(address _admin, bool _status) external onlyOwner{
-        isAdmin[_admin] = _status;
-    }
-
-    function setItems(ItemInfo[30] calldata _items) external onlyOwner {
-        itemInfo = _items;
+        (bool sent,) = payable(msg.sender).call{value:amountToTransfer}("");
+        require(sent , "GoldenLama:: not sent!"); 
     }
 
     function purchaselevelOneItemInfo(uint8 _itemType) external {
@@ -566,13 +561,4 @@ contract GoldenLama {
             _itemType == YACHT_PURCHASE_TYPE
         );
     }
-
-    function _transferFrom(address _from, address _to, uint256 _amount) private {
-        require(_from.balance > _amount, "GoldenLama:: Insufficient amount for tgransfer!");
-        require(_amount > 0, "GoldenLama:: Amount should be more than 0!");
-        require(_to != address(0), "GoldenLama:: Transfer to 0 address!");
-        _from.balance -= _amount;
-        _to.balance += _amount;
-    }
-
 }
