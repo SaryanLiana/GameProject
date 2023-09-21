@@ -97,12 +97,11 @@ contract GoldenLama {
 //     uint8 private constant SMART_WATCH_PURCHASE_TYPE = 27;
 //     uint8 private constant SMARTPHONE_PURCHASE_TYPE = 28;
 //     uint8 private constant YACHT_PURCHASE_TYPE = 29;
+    uint64 private constant PRICE_OF_COCKTAIL = 30000000000000;
+    uint64 private constant PRICE_OF_COIN = 300000000000;
 
     address public owner;
     uint256 public usersCount;
-    uint256 public priceOfCocktail;
-    uint256 public priceOfCoins;
-    uint256 public priceOfGoldenCoin;
     uint256 public startTimestamp;
     ItemInfo[30] public itemInfo;
     mapping(address => LevelOneItemInfo) public levelOneItemInfo;
@@ -173,8 +172,8 @@ contract GoldenLama {
     function buyCocktail(uint256 _count) external payable {
         require(_count > itemInfo[0].price, "GoldenLama:: Cocktails count to buy should be greater than 600!");
         require((msg.sender).balance >= msg.value, "GoldenLama:: Insufficient user balance!");
-        require(msg.value >= (_count * priceOfCocktail), "GoldenLama:: Insufficient funds for buying cocktails!");
-        uint256 amountToReturn = msg.value - (_count * priceOfCocktail); 
+        require(msg.value >= (_count * PRICE_OF_COCKTAIL), "GoldenLama:: Insufficient funds for buying cocktails!");
+        uint256 amountToReturn = msg.value - (_count * PRICE_OF_COCKTAIL); 
         uint256 amountToTransfer = msg.value - amountToReturn;
 
         if(amountToReturn > 0) {
@@ -187,8 +186,8 @@ contract GoldenLama {
 
         address referrer = addressToHisReferrer[msg.sender];
         if(referrer != address(0)) {
-            uint256 countOfCoctails = amountToTransfer * 7 / 1000 / priceOfCocktail;
-            uint256 countOfCoins = amountToTransfer * 3 / 1000 / priceOfCoins;
+            uint256 countOfCoctails = amountToTransfer * 7 / 1000 / PRICE_OF_COCKTAIL;
+            uint256 countOfCoins = amountToTransfer * 3 / 1000 / PRICE_OF_COIN;
             userInfo[referrer].balanceOfCocktail += countOfCoctails;
             userInfo[referrer].balanceOfCoin += countOfCoins;
         }
@@ -207,7 +206,7 @@ contract GoldenLama {
     function sellCois(uint256 _count) external {
         require(userInfo[msg.sender].balanceOfCoin >= _count, "GoldenLama:: Insufficient balance of cocktails!");
         userInfo[msg.sender].balanceOfCoin -= _count;
-        uint256 amountToTransfer = _count * priceOfCoins;
+        uint256 amountToTransfer = _count * PRICE_OF_COIN;
         // payable(msg.sender).transfer(amountToTransfer); 
 
         (bool sent,) = payable(msg.sender).call{value:amountToTransfer}("");
