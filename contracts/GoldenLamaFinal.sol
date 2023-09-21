@@ -396,97 +396,141 @@ contract GoldenLama {
         emit LevelFiveItemPurchased(msg.sender, _itemType, block.timestamp);
     }
     
-    function claim() external view {
+    function claim() external {
         uint256 profit = userInfo[msg.sender].profitDept;
+        uint256 sandTime = levelOneItemInfo[msg.sender].timestampOfSand;
+        uint256 skyTime = levelOneItemInfo[msg.sender].timestampOfSky;
+        uint256 seaTime = levelOneItemInfo[msg.sender].timestampOfSea;
+        uint256 cloudTime = levelOneItemInfo[msg.sender].timestampOfCloud;
+        uint256 sunTime = levelOneItemInfo[msg.sender].timestampOfSun;
+        uint256 gullTime = levelOneItemInfo[msg.sender].timestampOfGull;
+        uint256 palmTime = levelTwoItemInfo[msg.sender].timestampOfPalm;
+        uint256 coconutTime = levelTwoItemInfo[msg.sender].timestampOfCoconuts;
+        uint256 fishTime = levelTwoItemInfo[msg.sender].timestampOfGoldFish;
+        uint256 crabTime = levelTwoItemInfo[msg.sender].timestampOfCrab; 
+        uint256 shellTime = levelTwoItemInfo[msg.sender].timestampOfShells;
+        uint256 stoneTime = levelTwoItemInfo[msg.sender].timestampOfColoredStones;
+        uint256 castelTime = levelThreeItemInfo[msg.sender].timestampOfSandCastel;
+        uint256 CLTime = levelThreeItemInfo[msg.sender].timestampOfChaiseLounge;
 
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfSand) {
+        if(block.timestamp + 1 days > sandTime) {
+            sandTime = block.timestamp;
             profit += SAND_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfSky) {
+        if(block.timestamp + 1 days > skyTime) {
+            skyTime = block.timestamp;
             profit += SKY_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfSea) {
+        if(block.timestamp + 1 days > seaTime) {
+            seaTime = block.timestamp;
             profit += SEA_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfCloud) {
+        if(block.timestamp + 1 days > cloudTime) {
+            cloudTime = block.timestamp;
             profit += CLOUD_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfSun) {
+        if(block.timestamp + 1 days > sunTime) {
+            sunTime = block.timestamp;
             profit += SUN_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfGull) {
+        if(block.timestamp + 1 days > gullTime) {
+            gullTime = block.timestamp;
             profit += GULL_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfPalm) {
+        if(block.timestamp + 1 days > palmTime) {
+            palmTime = block.timestamp;
             profit += PALM_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfCoconuts) {
+        if(block.timestamp + 1 days > coconutTime) {
+            coconutTime = block.timestamp;
             profit += COCONUTS_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfGoldFish) {
+        if(block.timestamp + 1 days > fishTime) {
+            fishTime = block.timestamp;
             profit += GOLD_FISH_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfCrab) {
+        if(block.timestamp + 1 days > crabTime) {
+            crabTime = block.timestamp;
             profit += CRAB_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfShells) {
+        if(block.timestamp + 1 days > shellTime) {
+            shellTime = block.timestamp;
             profit += SHELLS_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfColoredStones) {
+        if(block.timestamp + 1 days > stoneTime) {
+            stoneTime = block.timestamp;
             profit += COLORED_STONES_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfSandCastel) {
+        if(block.timestamp + 1 days > castelTime) {
+            castelTime = block.timestamp;
             profit += SAND_CASTEL_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfChaiseLounge) {
+        if(block.timestamp + 1 days > CLTime) {
+            CLTime = block.timestamp;
             profit += CHAISE_LOUNGE_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfTowel) {
+            levelThreeItemInfo[msg.sender].timestampOfTowel = block.timestamp;
             profit += TOWEL_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfSuncreen) {
+            levelThreeItemInfo[msg.sender].timestampOfSuncreen = block.timestamp;
             profit += SUNSCREEN_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfBasket) {
+            levelThreeItemInfo[msg.sender].timestampOfBasket = block.timestamp;
             profit += BASKET_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfUmbrella) {
+            levelThreeItemInfo[msg.sender].timestampOfUmbrella = block.timestamp;
             profit += UMBRELLA_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfBoa) {
+            levelFourItemInfo[msg.sender].timestampOfBoa = block.timestamp;
             profit += BOA_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfSunglasses) {
+            levelFourItemInfo[msg.sender].timestampOfSunglasses = block.timestamp;
             profit += SUNGLASSES_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfBaseballCap) {
+            levelFourItemInfo[msg.sender].timestampOfBaseballCap = block.timestamp;
             profit += BASEBALL_CAP_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfSwimsuitTop) {
+            levelFourItemInfo[msg.sender].timestampOfSwimsuitTop = block.timestamp;
             profit += SWIMSUIT_TOP_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfSwimsuitBriefs) {
+            levelFourItemInfo[msg.sender].timestampOfSwimsuitBriefs = block.timestamp;
             profit += SWIMSUIT_BRIEFS_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfCrocs) {
+            levelFourItemInfo[msg.sender].timestampOfCrocs = block.timestamp;
             profit += CROCS_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfFlamingoRing) {
+            levelFiveItemInfo[msg.sender].timestampOfFlamingoRing = block.timestamp;
             profit += FLAMINGO_RING_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfDrink) {
+            levelFiveItemInfo[msg.sender].timestampOfDrink = block.timestamp;
             profit += DRINK_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfGoldenColor) {
+            levelFiveItemInfo[msg.sender].timestampOfGoldenColor = block.timestamp;
             profit += GOLDEN_COLOR_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfSmartWatch) {
+            levelFiveItemInfo[msg.sender].timestampOfSmartWatch = block.timestamp;
             profit += SMART_WATCH_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfSmartphone) {
+            levelFiveItemInfo[msg.sender].timestampOfSmartphone = block.timestamp;
             profit += SMARTPHONE_DAILY_PROFIT;
         }
         if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfYacht) {
+            levelFiveItemInfo[msg.sender].timestampOfYacht = block.timestamp;
             profit += YACHT_DAILY_PROFIT;
         }
     }
