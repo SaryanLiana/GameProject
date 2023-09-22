@@ -189,6 +189,12 @@ contract GoldenLama {
         uint256 amountToReturn = msg.value - (_count * PRICE_OF_COCKTAIL); 
         uint256 amountToTransfer = msg.value - amountToReturn;
 
+        if(userInfo[msg.sender].userId == 0) {
+            userInfo[msg.sender].userId = usersCount;
+            idToHisAddress[usersCount] = msg.sender;
+            ++usersCount;
+        }
+
         if(amountToReturn > 0) {
             payable(msg.sender).transfer(amountToReturn);
         }
