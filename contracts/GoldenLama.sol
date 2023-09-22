@@ -194,7 +194,7 @@ contract GoldenLama {
             idToHisAddress[usersCount] = msg.sender;
             ++usersCount;
         }
-
+        
         if(amountToReturn > 0) {
             payable(msg.sender).transfer(amountToReturn);
         }
@@ -226,7 +226,6 @@ contract GoldenLama {
         require(userInfo[msg.sender].balanceOfCoin >= _count, "GoldenLama:: Insufficient balance of cocktails!");
         userInfo[msg.sender].balanceOfCoin -= _count;
         uint256 amountToTransfer = _count * PRICE_OF_COIN;
-        // payable(msg.sender).transfer(amountToTransfer); 
 
         (bool sent,) = payable(msg.sender).call{value:amountToTransfer}("");
         require(sent , "GoldenLama:: not sent!");
@@ -433,123 +432,123 @@ contract GoldenLama {
         LevelFourItemInfo storage levelFourItems = levelFourItemInfo[msg.sender];
         LevelFiveItemInfo storage levelFiveItems = levelFiveItemInfo[msg.sender];
 
-        if(block.timestamp + 1 days > levelOneItems.timestampOfSand) {
+        if(levelOneItems.timestampOfSand > 0 && block.timestamp > levelOneItems.timestampOfSand + 1 days) {
             levelOneItems.timestampOfSand = block.timestamp;
             user.profitDept += SAND_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItems.timestampOfSky) {
+        if(levelOneItems.timestampOfSky > 0 && block.timestamp > levelOneItems.timestampOfSky + 1 days ) {
             levelOneItems.timestampOfSky = block.timestamp;
             user.profitDept += SKY_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItems.timestampOfSea) {
+        if(levelOneItems.timestampOfSea > 0 && block.timestamp > levelOneItems.timestampOfSea + 1 days) {
             levelOneItems.timestampOfSea = block.timestamp;
             user.profitDept += SEA_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItems.timestampOfCloud) {
+        if(levelOneItems.timestampOfCloud > 0 && block.timestamp > levelOneItems.timestampOfCloud + 1 days) {
             levelOneItems.timestampOfCloud = block.timestamp;
             user.profitDept += CLOUD_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItems.timestampOfSun) {
+        if(levelOneItems.timestampOfSun > 0 && block.timestamp > levelOneItems.timestampOfSun + 1 days) {
             levelOneItems.timestampOfSun = block.timestamp;
             user.profitDept += SUN_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItems.timestampOfGull) {
+        if(levelOneItems.timestampOfGull > 0 && block.timestamp > levelOneItems.timestampOfGull + 1 days) {
             levelOneItems.timestampOfGull = block.timestamp;
             user.profitDept += GULL_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItems.timestampOfPalm) {
+        if(levelTwoItems.timestampOfPalm > 0 && block.timestamp > levelTwoItems.timestampOfPalm + 1 days) {
             levelTwoItems.timestampOfPalm = block.timestamp;
             user.profitDept += PALM_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItems.timestampOfCoconuts) {
+        if(levelTwoItems.timestampOfCoconuts > 0 && block.timestamp > levelTwoItems.timestampOfCoconuts + 1 days) {
             levelTwoItems.timestampOfCoconuts = block.timestamp;
             user.profitDept += COCONUTS_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItems.timestampOfGoldFish) {
+        if(levelTwoItems.timestampOfGoldFish > 0 && block.timestamp > levelTwoItems.timestampOfGoldFish + 1 days) {
             levelTwoItems.timestampOfGoldFish = block.timestamp;
             user.profitDept += GOLD_FISH_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItems.timestampOfCrab) {
+        if(levelTwoItems.timestampOfCrab > 0 && block.timestamp > levelTwoItems.timestampOfCrab + 1 days) {
             levelTwoItems.timestampOfCrab = block.timestamp;
             user.profitDept += CRAB_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItems.timestampOfShells) {
+        if(levelTwoItems.timestampOfShells > 0 && block.timestamp > levelTwoItems.timestampOfShells + 1 days) {
             levelTwoItems.timestampOfShells = block.timestamp;
             user.profitDept += SHELLS_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItems.timestampOfColoredStones) {
+        if(levelTwoItems.timestampOfColoredStones > 0 && block.timestamp > levelTwoItems.timestampOfColoredStones + 1 days) {
             levelTwoItems.timestampOfColoredStones = block.timestamp;
             user.profitDept += COLORED_STONES_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItems.timestampOfSandCastel) {
+        if(levelThreeItems.timestampOfSandCastel > 0 && block.timestamp > levelThreeItems.timestampOfSandCastel + 1 days) {
             levelThreeItems.timestampOfSandCastel = block.timestamp;
             user.profitDept += SAND_CASTEL_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItems.timestampOfChaiseLounge) {
+        if(levelThreeItems.timestampOfChaiseLounge > 0 && block.timestamp > levelThreeItems.timestampOfChaiseLounge + 1 days) {
             levelThreeItems.timestampOfChaiseLounge = block.timestamp;
             user.profitDept += CHAISE_LOUNGE_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItems.timestampOfTowel) {
+        if(levelThreeItems.timestampOfTowel > 0 && block.timestamp > levelThreeItems.timestampOfTowel + 1 days) {
             levelThreeItems.timestampOfTowel = block.timestamp;
             user.profitDept += TOWEL_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItems.timestampOfSuncreen) {
+        if(levelThreeItems.timestampOfSuncreen > 0 && block.timestamp > levelThreeItems.timestampOfSuncreen + 1 days) {
             levelThreeItems.timestampOfSuncreen = block.timestamp;
             user.profitDept += SUNSCREEN_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItems.timestampOfBasket) {
+        if(levelThreeItems.timestampOfBasket > 0 && block.timestamp > levelThreeItems.timestampOfBasket + 1 days) {
             levelThreeItems.timestampOfBasket = block.timestamp;
             user.profitDept += BASKET_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItems.timestampOfUmbrella) {
+        if(levelThreeItems.timestampOfUmbrella > 0 && block.timestamp > levelThreeItems.timestampOfUmbrella + 1 days) {
             levelThreeItems.timestampOfUmbrella = block.timestamp;
             user.profitDept += UMBRELLA_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItems.timestampOfBoa) {
+        if(levelFourItems.timestampOfBoa > 0 && block.timestamp > levelFourItems.timestampOfBoa + 1 days) {
             levelFourItems.timestampOfBoa = block.timestamp;
             user.profitDept += BOA_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItems.timestampOfSunglasses) {
+        if(levelFourItems.timestampOfSunglasses > 0 && block.timestamp > levelFourItems.timestampOfSunglasses + 1 days) {
             levelFourItems.timestampOfSunglasses = block.timestamp;
             user.profitDept += SUNGLASSES_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItems.timestampOfBaseballCap) {
+        if(levelFourItems.timestampOfBaseballCap > 0 && block.timestamp > levelFourItems.timestampOfBaseballCap + 1 days) {
             levelFourItems.timestampOfBaseballCap = block.timestamp;
             user.profitDept += BASEBALL_CAP_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItems.timestampOfSwimsuitTop) {
+        if(levelFourItems.timestampOfSwimsuitTop > 0 && block.timestamp > levelFourItems.timestampOfSwimsuitTop + 1 days) {
             levelFourItems.timestampOfSwimsuitTop = block.timestamp;
             user.profitDept += SWIMSUIT_TOP_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItems.timestampOfSwimsuitBriefs) {
+        if(levelFourItems.timestampOfSwimsuitBriefs > 0 && block.timestamp > levelFourItems.timestampOfSwimsuitBriefs + 1 days) {
             levelFourItems.timestampOfSwimsuitBriefs = block.timestamp;
             user.profitDept += SWIMSUIT_BRIEFS_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItems.timestampOfCrocs) {
+        if(levelFourItems.timestampOfCrocs > 0 && block.timestamp > levelFourItems.timestampOfCrocs + 1 days) {
             levelFourItems.timestampOfCrocs = block.timestamp;
             user.profitDept += CROCS_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItems.timestampOfFlamingoRing) {
+        if(levelFiveItems.timestampOfFlamingoRing > 0 && block.timestamp > levelFiveItems.timestampOfFlamingoRing + 1 days) {
             levelFiveItems.timestampOfFlamingoRing = block.timestamp;
             user.profitDept += FLAMINGO_RING_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItems.timestampOfDrink) {
+        if(levelFiveItems.timestampOfDrink > 0 && block.timestamp > levelFiveItems.timestampOfDrink + 1 days) {
             levelFiveItems.timestampOfDrink = block.timestamp;
             user.profitDept += DRINK_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItems.timestampOfGoldenColor) {
+        if(levelFiveItems.timestampOfGoldenColor > 0 && block.timestamp > levelFiveItems.timestampOfGoldenColor + 1 days) {
             levelFiveItems.timestampOfGoldenColor = block.timestamp;
             user.profitDept += GOLDEN_COLOR_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItems.timestampOfSmartWatch) {
+        if(levelFiveItems.timestampOfSmartWatch > 0 && block.timestamp > levelFiveItems.timestampOfSmartWatch + 1 days) {
             levelFiveItems.timestampOfSmartWatch = block.timestamp;
             user.profitDept += SMART_WATCH_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItems.timestampOfSmartphone) {
+        if(levelFiveItems.timestampOfSmartphone > 0 && block.timestamp > levelFiveItems.timestampOfSmartphone + 1 days) {
             levelFiveItems.timestampOfSmartphone = block.timestamp;
             user.profitDept += SMARTPHONE_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItems.timestampOfYacht) {
+        if(levelFiveItems.timestampOfYacht > 0 && block.timestamp > levelFiveItems.timestampOfYacht + 1 days) {
             levelFiveItems.timestampOfYacht = block.timestamp;
             user.profitDept += YACHT_DAILY_PROFIT;
         }
