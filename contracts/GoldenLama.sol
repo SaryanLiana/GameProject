@@ -4,12 +4,6 @@ pragma solidity ^0.8.19;
 
 contract GoldenLama {
 
-    struct ItemInfo {
-        uint256 purchaseType;
-        uint256 price;
-        uint256 dailyProfit;
-    }
-
     struct UserInfo {
         uint256 userId;
         uint256 refId;
@@ -60,11 +54,12 @@ contract GoldenLama {
     
     struct LevelFiveItemInfo {
         uint256 timestampOfFlamingoRing;
-        uint256 timestampOfCoctail;
+        uint256 timestampOfDrink;
         uint256 timestampOfGoldenColor;
         uint256 timestampOfSmartWatch;
         uint256 timestampOfSmartphone;
         uint256 timestampOfYacht;
+        bool allItemsBought;
     }
 
     uint8 private constant SAND_PURCHASE_TYPE = 0;
@@ -98,13 +93,44 @@ contract GoldenLama {
     uint8 private constant SMARTPHONE_PURCHASE_TYPE = 28;
     uint8 private constant YACHT_PURCHASE_TYPE = 29;
 
+    uint32 private constant SAND_DAILY_PROFIT = 1181;
+    uint32 private constant SKY_DAILY_PROFIT = 2396;
+    uint32 private constant SEA_DAILY_PROFIT = 3600;
+    uint32 private constant CLOUD_DAILY_PROFIT = 4870;
+    uint32 private constant SUN_DAILY_PROFIT = 6180;
+    uint32 private constant GULL_DAILY_PROFIT = 7489;
+    uint32 private constant PALM_DAILY_PROFIT = 8792;
+    uint32 private constant COCONUTS_DAILY_PROFIT = 10069;
+    uint32 private constant GOLD_FISH_DAILY_PROFIT = 11618;
+    uint32 private constant CRAB_DAILY_PROFIT = 13782;
+    uint32 private constant SHELLS_DAILY_PROFIT = 14896;
+    uint32 private constant COLORED_STONES_DAILY_PROFIT = 17075;
+    uint32 private constant SAND_CASTEL_DAILY_PROFIT = 19288;
+    uint32 private constant CHAISE_LOUNGE_DAILY_PROFIT = 21519;
+    uint32 private constant TOWEL_DAILY_PROFIT = 26052;
+    uint32 private constant SUNSCREEN_DAILY_PROFIT = 34707;
+    uint32 private constant BASKET_DAILY_PROFIT = 43715;
+    uint32 private constant UMBRELLA_DAILY_PROFIT = 54860;
+    uint32 private constant BOA_DAILY_PROFIT = 65919;
+    uint32 private constant SUNGLASSES_DAILY_PROFIT = 77639;
+    uint32 private constant BASEBALL_CAP_DAILY_PROFIT = 88888;
+    uint32 private constant SWIMSUIT_TOP_DAILY_PROFIT = 111482;
+    uint32 private constant SWIMSUIT_BRIEFS_DAILY_PROFIT = 146100;
+    uint32 private constant CROCS_DAILY_PROFIT = 179856;
+    uint32 private constant FLAMINGO_RING_DAILY_PROFIT = 227790;
+    uint32 private constant DRINK_DAILY_PROFIT = 273660;
+    uint32 private constant GOLDEN_COLOR_DAILY_PROFIT = 343249;
+    uint32 private constant SMART_WATCH_DAILY_PROFIT = 413602;
+    uint32 private constant SMARTPHONE_DAILY_PROFIT = 533271;
+    uint32 private constant YACHT_DAILY_PROFIT = 705384;
+
+    uint64 private constant PRICE_OF_COCKTAIL = 30000000000000;
+    uint64 private constant PRICE_OF_COIN = 300000000000;
+
     address public owner;
     uint256 public usersCount;
-    uint256 public priceOfCocktail;
-    uint256 public priceOfCoins;
-    uint256 public priceOfGoldenCoin;
     uint256 public startTimestamp;
-    ItemInfo[30] public itemInfo;
+    uint32[30] public prices;
     mapping(address => LevelOneItemInfo) public levelOneItemInfo;
     mapping(address => LevelTwoItemInfo) public levelTwoItemInfo;
     mapping(address => LevelThreeItemInfo) public levelThreeItemInfo;
@@ -123,33 +149,25 @@ contract GoldenLama {
     event LevelThreeItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
     event LevelFourItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
     event LevelFiveItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
-    
-    modifier onlyOwner {
-        require(msg.sender == owner, "GoldenLama:: Caller is not the owner!");
-        _;
-    }
 
     modifier onlyAdmin(){
         require(isAdmin[msg.sender] || msg.sender == owner, "GoldenLama:: This function can be called only by admins");
         _;
     }
 
-    constructor() {
+    constructor(uint32[30] memory _prices) {
         owner = msg.sender;
         startTimestamp = block.timestamp;
         usersCount = 1;
+        _setPrices(_prices);
     }
 
     receive() external payable {}
 
     fallback() external payable {}
 
-    function setAdminStatus(address _admin, bool _status) external onlyOwner{
+    function setAdminStatus(address _admin, bool _status) external onlyAdmin{
         isAdmin[_admin] = _status;
-    }
-
-    function setItems(ItemInfo[30] calldata _items) external onlyOwner {
-        itemInfo = _items;
     }
 
     function addUserToMlm(address _user, uint256 _refId) external onlyAdmin {
@@ -165,10 +183,10 @@ contract GoldenLama {
     }
 
     function buyCocktail(uint256 _count) external payable {
-        require(_count > itemInfo[SAND_PURCHASE_TYPE].price, "GoldenLama:: Cocktails count to buy should be greater than 600!");
+        require(_count > prices[0], "GoldenLama:: Cocktails count to buy should be greater than 600!");
         require((msg.sender).balance >= msg.value, "GoldenLama:: Insufficient user balance!");
-        require(msg.value >= (_count * priceOfCocktail), "GoldenLama:: Insufficient funds for buying cocktails!");
-        uint256 amountToReturn = msg.value - (_count * priceOfCocktail); 
+        require(msg.value >= (_count * PRICE_OF_COCKTAIL), "GoldenLama:: Insufficient funds for buying cocktails!");
+        uint256 amountToReturn = msg.value - (_count * PRICE_OF_COCKTAIL); 
         uint256 amountToTransfer = msg.value - amountToReturn;
 
         if(amountToReturn > 0) {
@@ -181,8 +199,8 @@ contract GoldenLama {
 
         address referrer = addressToHisReferrer[msg.sender];
         if(referrer != address(0)) {
-            uint256 countOfCoctails = amountToTransfer * 7 / 1000 / priceOfCocktail;
-            uint256 countOfCoins = amountToTransfer * 3 / 1000 / priceOfCoins;
+            uint256 countOfCoctails = amountToTransfer * 7 / 1000 / PRICE_OF_COCKTAIL;
+            uint256 countOfCoins = amountToTransfer * 3 / 1000 / PRICE_OF_COIN;
             userInfo[referrer].balanceOfCocktail += countOfCoctails;
             userInfo[referrer].balanceOfCoin += countOfCoins;
         }
@@ -201,251 +219,340 @@ contract GoldenLama {
     function sellCois(uint256 _count) external {
         require(userInfo[msg.sender].balanceOfCoin >= _count, "GoldenLama:: Insufficient balance of cocktails!");
         userInfo[msg.sender].balanceOfCoin -= _count;
-        uint256 amountToTransfer = _count * priceOfCoins;
+        uint256 amountToTransfer = _count * PRICE_OF_COIN;
         // payable(msg.sender).transfer(amountToTransfer); 
 
         (bool sent,) = payable(msg.sender).call{value:amountToTransfer}("");
-        require(sent , "GoldenLama:: not sent!"); 
+        require(sent , "GoldenLama:: not sent!");
     }
 
-    function purchaselevelOneItemInfo(uint8 _itemType) external {
-        require(userInfo[msg.sender].balanceOfCocktail >= itemInfo[_itemType].price, "GoldenLama:: Insufficient balance for buyind Level 1 item!");
+    function purchaselevelOneItem(uint8 _itemType) external {
+        require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 1 item!");
+        
+        LevelOneItemInfo storage userItems = levelOneItemInfo[msg.sender];
         _validatelevelOneItemInfoTypes(_itemType);
-        userInfo[msg.sender].balanceOfCocktail -= itemInfo[_itemType].price;
+        userInfo[msg.sender].balanceOfCocktail -= prices[_itemType];
 
-        if(_itemType == 0){
-            levelOneItemInfo[msg.sender].timestampOfSand = block.timestamp;
-        } else if(_itemType == 1) {
-            require(levelOneItemInfo[msg.sender].timestampOfSand > 0, "GoldenLama:: You must buy the previous one!");
-            levelOneItemInfo[msg.sender].timestampOfSky = block.timestamp;
-        } else if(_itemType == 2) {
-            require(levelOneItemInfo[msg.sender].timestampOfSand > 0 && levelOneItemInfo[msg.sender].timestampOfSky > 0, "GoldenLama:: You must buy the previous items!");
-            levelOneItemInfo[msg.sender].timestampOfSea = block.timestamp;
-        } else if(_itemType == 3) {
-            require(levelOneItemInfo[msg.sender].timestampOfSand > 0 && levelOneItemInfo[msg.sender].timestampOfSky > 0 && levelOneItemInfo[msg.sender].timestampOfSea > 0, "GoldenLama:: You must buy the previous items!");
-            levelOneItemInfo[msg.sender].timestampOfCloud = block.timestamp;
-        } else if(_itemType == 4) {
-            require(levelOneItemInfo[msg.sender].timestampOfSand > 0 && levelOneItemInfo[msg.sender].timestampOfSky > 0 && levelOneItemInfo[msg.sender].timestampOfSea > 0 && levelOneItemInfo[msg.sender].timestampOfCloud > 0, "GoldenLama:: You must buy the previous items!");
-            levelOneItemInfo[msg.sender].timestampOfSun = block.timestamp;
+        require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
+        require(
+            (_itemType == 0) || // Sand is always allowed
+            (_itemType == 1 && userItems.timestampOfSand > 0) || // Sky requires Sand
+            (_itemType == 2 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0) || // Sea requires Sand and Sky
+            (_itemType == 3 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0) || // Cloud requires Sand, Sky, and Sea
+            (_itemType == 4 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0 && userItems.timestampOfCloud > 0) || // Sun requires Sand, Sky, Sea, and Cloud
+            (_itemType == 5 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0 && userItems.timestampOfCloud > 0 && userItems.timestampOfSun > 0) , // Gull requires Sand, Sky, Sea, Cloud and Sun
+            "GoldenLama:: You must buy the previous items!"
+        );
+
+        // Update the corresponding timestamp
+        if (_itemType == 0) {
+            userItems.timestampOfSand = block.timestamp;
+        } else if (_itemType == 1) {
+            userItems.timestampOfSky = block.timestamp;
+        } else if (_itemType == 2) {
+            userItems.timestampOfSea = block.timestamp;
+        } else if (_itemType == 3) {
+            userItems.timestampOfCloud = block.timestamp;
+        } else if (_itemType == 4) {
+            userItems.timestampOfSun = block.timestamp;
         } else {
-            require(levelOneItemInfo[msg.sender].timestampOfSand > 0 && levelOneItemInfo[msg.sender].timestampOfSky > 0 && levelOneItemInfo[msg.sender].timestampOfSea > 0 && levelOneItemInfo[msg.sender].timestampOfCloud > 0 && levelOneItemInfo[msg.sender].timestampOfSun > 0, "GoldenLama:: You must buy the previous items!");
-            levelOneItemInfo[msg.sender].timestampOfGull = block.timestamp;
-            levelOneItemInfo[msg.sender].allItemsBought = true;
+            userItems.timestampOfGull = block.timestamp;
+            userItems.allItemsBought = true;
         }
 
         emit LevelOneItemPurchased(msg.sender, _itemType, block.timestamp);
     }
 
-    function purchaselevelTwoItemInfo(uint8 _itemType) external {
-        require(userInfo[msg.sender].balanceOfCocktail >= itemInfo[_itemType].price, "GoldenLama:: Insufficient balance for buyind Level 1 item!");
+    function purchaselevelTwoItem(uint8 _itemType) external {
+        require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 2 item!");
         require(levelOneItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the first line!");
+        
+        LevelTwoItemInfo storage userItems = levelTwoItemInfo[msg.sender];
         _validatelevelTwoItemInfoTypes(_itemType);
-        userInfo[msg.sender].balanceOfCocktail -= itemInfo[_itemType].price;
+        userInfo[msg.sender].balanceOfCocktail -= prices[_itemType];
 
-        if(_itemType == 6){
-            levelTwoItemInfo[msg.sender].timestampOfPalm = block.timestamp;
-        } else if(_itemType == 7) {
-            require(levelTwoItemInfo[msg.sender].timestampOfPalm > 0, "GoldenLama:: You must buy the previous one!");
-            levelTwoItemInfo[msg.sender].timestampOfCoconuts = block.timestamp;
-        } else if(_itemType == 8) {
-            require(levelTwoItemInfo[msg.sender].timestampOfPalm > 0 && levelTwoItemInfo[msg.sender].timestampOfCoconuts > 0, "GoldenLama:: You must buy the previous items!");
-            levelTwoItemInfo[msg.sender].timestampOfGoldFish = block.timestamp;
-        } else if(_itemType == 9) {
-            require(levelTwoItemInfo[msg.sender].timestampOfPalm > 0 && levelTwoItemInfo[msg.sender].timestampOfCoconuts > 0 && levelTwoItemInfo[msg.sender].timestampOfGoldFish > 0, "GoldenLama:: You must buy the previous items!");
-            levelTwoItemInfo[msg.sender].timestampOfCrab = block.timestamp;
-        } else if(_itemType == 10) {
-            require(levelTwoItemInfo[msg.sender].timestampOfPalm > 0 && levelTwoItemInfo[msg.sender].timestampOfCoconuts > 0 && levelTwoItemInfo[msg.sender].timestampOfGoldFish > 0 && levelTwoItemInfo[msg.sender].timestampOfCrab > 0, "GoldenLama:: You must buy the previous items!");
-            levelTwoItemInfo[msg.sender].timestampOfShells = block.timestamp;
+        require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
+        require(
+            (_itemType == 6) || // Palm is always allowed
+            (_itemType == 7 && userItems.timestampOfPalm > 0) || // Coconut requires Palm
+            (_itemType == 8 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0) || // Fish requires Coconut and Palm
+            (_itemType == 9 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0) || // Crab requires Palm, Coconut and Fish
+            (_itemType == 10 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0 && userItems.timestampOfCrab > 0) || // Shells requires Palm, Coconut, Fish and Crab
+            (_itemType == 11 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0 && userItems.timestampOfCrab > 0 && userItems.timestampOfShells > 0), // Stones requires Palm, Coconut, Fish, Crab and Shells
+            "GoldenLama:: You must buy the previous items!"
+        );
+
+        // Update the corresponding timestamp
+        if (_itemType == 6) {
+            userItems.timestampOfPalm = block.timestamp;
+        } else if (_itemType == 7) {
+            userItems.timestampOfCoconuts = block.timestamp;
+        } else if (_itemType == 8) {
+            userItems.timestampOfGoldFish = block.timestamp;
+        } else if (_itemType == 9) {
+            userItems.timestampOfCrab = block.timestamp;
+        } else if (_itemType == 10) {
+            userItems.timestampOfShells = block.timestamp;
         } else {
-            require(levelTwoItemInfo[msg.sender].timestampOfPalm > 0 && levelTwoItemInfo[msg.sender].timestampOfCoconuts > 0 && levelTwoItemInfo[msg.sender].timestampOfGoldFish > 0 && levelTwoItemInfo[msg.sender].timestampOfCrab > 0 && levelTwoItemInfo[msg.sender].timestampOfShells > 0, "GoldenLama:: You must buy the previous items!");
-            levelTwoItemInfo[msg.sender].timestampOfColoredStones = block.timestamp;
-            levelTwoItemInfo[msg.sender].allItemsBought = true;
+            userItems.timestampOfColoredStones = block.timestamp;
+            userItems.allItemsBought = true;
         }
 
         emit LevelTwoItemPurchased(msg.sender, _itemType, block.timestamp);
+
     }
 
-    function purchaselevelThreeItemInfo(uint8 _itemType) external {
+    function purchaselevelThreeItem(uint8 _itemType) external {
         require(block.timestamp > startTimestamp + 11 days, "GoldenLama:: Third line items are not available yet!");
-        require(userInfo[msg.sender].balanceOfCocktail >= itemInfo[_itemType].price, "GoldenLama:: Insufficient balance for buyind Level 1 item!");
-        require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous line!");      
+        require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 3 item!");
+        require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous lines!");      
+        
+        LevelThreeItemInfo storage userItems = levelThreeItemInfo[msg.sender];
         _validatelevelThreeItemInfoTypes(_itemType);
-        userInfo[msg.sender].balanceOfCocktail -= itemInfo[_itemType].price;
+        userInfo[msg.sender].balanceOfCocktail -= prices[_itemType];
 
-        if(_itemType == 12){
-            levelThreeItemInfo[msg.sender].timestampOfSandCastel = block.timestamp;
-        } else if(_itemType == 13) {
-            require(levelThreeItemInfo[msg.sender].timestampOfSandCastel > 0, "GoldenLama:: You must buy the previous one!");
-            levelThreeItemInfo[msg.sender].timestampOfChaiseLounge = block.timestamp;
-        } else if(_itemType == 14) {
-            require(levelThreeItemInfo[msg.sender].timestampOfSandCastel > 0 && levelThreeItemInfo[msg.sender].timestampOfChaiseLounge > 0, "GoldenLama:: You must buy the previous items!");
-            levelThreeItemInfo[msg.sender].timestampOfTowel = block.timestamp;
-        } else if(_itemType == 15) {
-            require(levelThreeItemInfo[msg.sender].timestampOfSandCastel > 0 && levelThreeItemInfo[msg.sender].timestampOfChaiseLounge > 0 && levelThreeItemInfo[msg.sender].timestampOfTowel > 0, "GoldenLama:: You must buy the previous items!");
-            levelThreeItemInfo[msg.sender].timestampOfSuncreen = block.timestamp;
-        } else if(_itemType == 16) {
-            require(levelThreeItemInfo[msg.sender].timestampOfSandCastel > 0 && levelThreeItemInfo[msg.sender].timestampOfChaiseLounge > 0 && levelThreeItemInfo[msg.sender].timestampOfTowel > 0 && levelThreeItemInfo[msg.sender].timestampOfSuncreen > 0, "GoldenLama:: You must buy the previous items!");
-            levelThreeItemInfo[msg.sender].timestampOfBasket = block.timestamp;
+        require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
+        require(
+            (_itemType == 12) || // Sand castel is always allowed
+            (_itemType == 13 && userItems.timestampOfSandCastel > 0) || // Chaise Lounge requires Sand Castel
+            (_itemType == 14 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0) || // Towel requires Sand Castel and Chaise Lounge 
+            (_itemType == 15 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0) || // Sunscreen requires Sand Castel, Chaise Lounge and Towel
+            (_itemType == 16 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0 && userItems.timestampOfSuncreen > 0) || // Basket requires Sand Castel, Chaise Lounge, Towel and Sunscreen
+            (_itemType == 17 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0 && userItems.timestampOfSuncreen > 0 && userItems.timestampOfBasket > 0), // Umbrella requires Sand Castel, Chaise Lounge, Towel, Sunscreen and Basket 
+            "GoldenLama:: You must buy the previous items!"
+        );
+        
+        // Update the corresponding timestamp
+        if (_itemType == 12) {
+            userItems.timestampOfSandCastel = block.timestamp;
+        } else if (_itemType == 13) {
+            userItems.timestampOfChaiseLounge = block.timestamp;
+        } else if (_itemType == 14) {
+            userItems.timestampOfTowel = block.timestamp;
+        } else if (_itemType == 15) {
+            userItems.timestampOfSuncreen = block.timestamp;
+        } else if (_itemType == 16) {
+            userItems.timestampOfBasket = block.timestamp;
         } else {
-            require(levelThreeItemInfo[msg.sender].timestampOfSandCastel > 0 && levelThreeItemInfo[msg.sender].timestampOfChaiseLounge > 0 && levelThreeItemInfo[msg.sender].timestampOfTowel > 0 && levelThreeItemInfo[msg.sender].timestampOfSuncreen > 0 && levelThreeItemInfo[msg.sender].timestampOfBasket > 0, "GoldenLama:: You must buy the previous items!");
-            levelThreeItemInfo[msg.sender].timestampOfUmbrella = block.timestamp;
-            levelThreeItemInfo[msg.sender].allItemsBought = true;
+            userItems.timestampOfUmbrella = block.timestamp;
+            userItems.allItemsBought = true;
         }
         
         emit LevelThreeItemPurchased(msg.sender, _itemType, block.timestamp);
     }
 
-    function purchaselevelFourItemInfo(uint8 _itemType) external {
+    function purchaselevelFourItem(uint8 _itemType) external {
         require(block.timestamp > startTimestamp + 21 days, "GoldenLama:: Fourth line items are not available yet!");
-        require(userInfo[msg.sender].balanceOfCocktail >= itemInfo[_itemType].price, "GoldenLama:: Insufficient balance for buyind Level 1 item!");
-        require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true && levelThreeItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous line!");      
-        _validatelevelFourItemInfoTypes(_itemType);
-        userInfo[msg.sender].balanceOfCocktail -= itemInfo[_itemType].price;
+        require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 4 item!");
+        require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true && levelThreeItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous lines!");      
 
-        if(_itemType == 18){
-            levelFourItemInfo[msg.sender].timestampOfBoa = block.timestamp;
-        } else if(_itemType == 19) {
-            require(levelFourItemInfo[msg.sender].timestampOfBoa > 0, "GoldenLama:: You must buy the previous one!");
-            levelFourItemInfo[msg.sender].timestampOfSunglasses = block.timestamp;
-        } else if(_itemType == 20) {
-            require(levelFourItemInfo[msg.sender].timestampOfBoa > 0 && levelFourItemInfo[msg.sender].timestampOfSunglasses > 0, "GoldenLama:: You must buy the previous items!");
-            levelFourItemInfo[msg.sender].timestampOfBaseballCap = block.timestamp;
-        } else if(_itemType == 21) {
-            require(levelFourItemInfo[msg.sender].timestampOfBoa > 0 && levelFourItemInfo[msg.sender].timestampOfSunglasses > 0 && levelFourItemInfo[msg.sender].timestampOfBaseballCap > 0, "GoldenLama:: You must buy the previous items!");
-            levelFourItemInfo[msg.sender].timestampOfSwimsuitTop = block.timestamp;
-        } else if(_itemType == 22) {
-            require(levelFourItemInfo[msg.sender].timestampOfBoa > 0 && levelFourItemInfo[msg.sender].timestampOfSunglasses > 0 && levelFourItemInfo[msg.sender].timestampOfBaseballCap > 0 && levelFourItemInfo[msg.sender].timestampOfSwimsuitTop > 0, "GoldenLama:: You must buy the previous items!");
-            levelFourItemInfo[msg.sender].timestampOfSwimsuitBriefs = block.timestamp;
+        LevelFourItemInfo storage userItems = levelFourItemInfo[msg.sender];
+        _validatelevelFourItemInfoTypes(_itemType);
+        userInfo[msg.sender].balanceOfCocktail -= prices[_itemType];
+
+        require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
+        require(
+            (_itemType == 18) || // Boa is always allowed
+            (_itemType == 19 && userItems.timestampOfBoa > 0) || // Sunglasses requires Boa
+            (_itemType == 20 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0) || // Baseball Cap requires Boa and Sunglasses 
+            (_itemType == 21 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0) || // Swimsuit Top requires Boa, Sunglasses and Baseball Cap
+            (_itemType == 22 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0 && userItems.timestampOfSwimsuitTop > 0) || // Swimsuit Briefs requires Boa, Sunglasses, Baseball Cap and Swimsuit Top
+            (_itemType == 23 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0 && userItems.timestampOfSwimsuitTop > 0 && userItems.timestampOfSwimsuitBriefs > 0), // Crocs requires Boa, Sunglasses, Baseball Cap, Swimsuit Top and Swimsuit Briefs 
+            "GoldenLama:: You must buy the previous items!"
+        );
+
+        // Update the corresponding timestamp
+        if (_itemType == 18) {
+            userItems.timestampOfBoa = block.timestamp;
+        } else if (_itemType == 19) {
+            userItems.timestampOfSunglasses = block.timestamp;
+        } else if (_itemType == 20) {
+            userItems.timestampOfBaseballCap = block.timestamp;
+        } else if (_itemType == 21) {
+            userItems.timestampOfSwimsuitTop = block.timestamp;
+        } else if (_itemType == 22) {
+            userItems.timestampOfSwimsuitBriefs = block.timestamp;
         } else {
-            require(levelFourItemInfo[msg.sender].timestampOfBoa > 0 && levelFourItemInfo[msg.sender].timestampOfSunglasses > 0 && levelFourItemInfo[msg.sender].timestampOfBaseballCap > 0 && levelFourItemInfo[msg.sender].timestampOfSwimsuitTop > 0 && levelFourItemInfo[msg.sender].timestampOfSwimsuitBriefs > 0, "GoldenLama:: You must buy the previous items!");
-            levelFourItemInfo[msg.sender].timestampOfCrocs = block.timestamp;
-            levelFourItemInfo[msg.sender].allItemsBought = true;
+            userItems.timestampOfCrocs = block.timestamp;
+            userItems.allItemsBought = true;
         }
 
         emit LevelFourItemPurchased(msg.sender, _itemType, block.timestamp);
     }
 
-    function purchaselevelFiveItemInfo(uint8 _itemType) external {
+    function purchaselevelFiveItem(uint8 _itemType) external {
         require(block.timestamp > startTimestamp + 41 days, "GoldenLama:: Fifth line items are not available yet!");
-        require(userInfo[msg.sender].balanceOfCocktail >= itemInfo[_itemType].price, "GoldenLama:: Insufficient balance for buyind Level 1 item!");
-        require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true && levelThreeItemInfo[msg.sender].allItemsBought == true && levelFourItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous line!");
+        require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 5 item!");
+        require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true && levelThreeItemInfo[msg.sender].allItemsBought == true && levelFourItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous lines!");
+       
+        LevelFiveItemInfo storage userItems = levelFiveItemInfo[msg.sender];
         _validatelevelFiveItemInfoTypes(_itemType);
-        userInfo[msg.sender].balanceOfCocktail -= itemInfo[_itemType].price;
+        userInfo[msg.sender].balanceOfCocktail -= prices[_itemType];
 
+        require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
+        require(
+            (_itemType == 24) || //  Flamingo Ring is always allowed
+            (_itemType == 25 && userItems.timestampOfFlamingoRing > 0) || // Drink requires  Flamingo Ring
+            (_itemType == 26 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0) || // Golden Color Cap requires  Flamingo Ring and Drink 
+            (_itemType == 27 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0) || // Swimsuit Top requires  Flamingo Ring, Drink and Golden Color Cap
+            (_itemType == 28 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0 && userItems.timestampOfSmartWatch > 0) || // Smartphone requires  Flamingo Ring, Drink, Golden Color Cap and Swimsuit Top
+            (_itemType == 29 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0 && userItems.timestampOfSmartWatch > 0 && userItems.timestampOfSmartphone > 0), // Yacht requires  Flamingo Ring, Drink, Golden Color Cap, Swimsuit Top and Smartphone 
+            "GoldenLama:: You must buy the previous items!"
+        );
+
+        // Update the corresponding timestamp
         if(_itemType == 24){
-            levelFiveItemInfo[msg.sender].timestampOfFlamingoRing = block.timestamp;
+            userItems.timestampOfFlamingoRing = block.timestamp;
         } else if(_itemType == 25) {
-            require(levelFiveItemInfo[msg.sender].timestampOfFlamingoRing > 0, "GoldenLama:: You must buy the previous one!");
-            levelFiveItemInfo[msg.sender].timestampOfCoctail = block.timestamp;
+            userItems.timestampOfDrink = block.timestamp;
         } else if(_itemType == 26) {
-            require(levelFiveItemInfo[msg.sender].timestampOfFlamingoRing > 0 && levelFiveItemInfo[msg.sender].timestampOfCoctail > 0, "GoldenLama:: You must buy the previous items!");
-            levelFiveItemInfo[msg.sender].timestampOfGoldenColor = block.timestamp;
+            userItems.timestampOfGoldenColor = block.timestamp;
         } else if(_itemType == 27) {
-            require(levelFiveItemInfo[msg.sender].timestampOfFlamingoRing > 0 && levelFiveItemInfo[msg.sender].timestampOfCoctail > 0 && levelFiveItemInfo[msg.sender].timestampOfGoldenColor > 0, "GoldenLama:: You must buy the previous items!");
-            levelFiveItemInfo[msg.sender].timestampOfSmartWatch = block.timestamp;
+            userItems.timestampOfSmartWatch = block.timestamp;
         } else if(_itemType == 28) {
-            require(levelFiveItemInfo[msg.sender].timestampOfFlamingoRing > 0 && levelFiveItemInfo[msg.sender].timestampOfCoctail > 0 && levelFiveItemInfo[msg.sender].timestampOfGoldenColor > 0 && levelFiveItemInfo[msg.sender].timestampOfSmartWatch > 0, "GoldenLama:: You must buy the previous items!");
-            levelFiveItemInfo[msg.sender].timestampOfSmartphone = block.timestamp;
+            userItems.timestampOfSmartphone = block.timestamp;
         } else {
-            require(levelFiveItemInfo[msg.sender].timestampOfFlamingoRing > 0 && levelFiveItemInfo[msg.sender].timestampOfCoctail > 0 && levelFiveItemInfo[msg.sender].timestampOfGoldenColor > 0 && levelFiveItemInfo[msg.sender].timestampOfSmartWatch > 0 && levelFiveItemInfo[msg.sender].timestampOfSmartphone > 0, "GoldenLama:: You must buy the previous items!");
-            levelFiveItemInfo[msg.sender].timestampOfYacht = block.timestamp;
+            userItems.timestampOfYacht = block.timestamp;
+            userItems.allItemsBought = true;
         }
 
         emit LevelFiveItemPurchased(msg.sender, _itemType, block.timestamp);
     }
 
     function claim() external {
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfSand) {
-            userInfo[msg.sender].profitDept += itemInfo[SAND_PURCHASE_TYPE].dailyProfit;
+        UserInfo storage user = userInfo[msg.sender];
+        LevelOneItemInfo storage levelOneItems = levelOneItemInfo[msg.sender];
+        LevelTwoItemInfo storage levelTwoItems = levelTwoItemInfo[msg.sender];
+        LevelThreeItemInfo storage levelThreeItems = levelThreeItemInfo[msg.sender];
+        LevelFourItemInfo storage levelFourItems = levelFourItemInfo[msg.sender];
+        LevelFiveItemInfo storage levelFiveItems = levelFiveItemInfo[msg.sender];
+
+        if(block.timestamp + 1 days > levelOneItems.timestampOfSand) {
+            levelOneItems.timestampOfSand = block.timestamp;
+            user.profitDept += SAND_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfSky) {
-            userInfo[msg.sender].profitDept += itemInfo[SKY_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelOneItems.timestampOfSky) {
+            levelOneItems.timestampOfSky = block.timestamp;
+            user.profitDept += SKY_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfSea) {
-            userInfo[msg.sender].profitDept += itemInfo[SEA_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelOneItems.timestampOfSea) {
+            levelOneItems.timestampOfSea = block.timestamp;
+            user.profitDept += SEA_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfCloud) {
-            userInfo[msg.sender].profitDept += itemInfo[CLOUD_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelOneItems.timestampOfCloud) {
+            levelOneItems.timestampOfCloud = block.timestamp;
+            user.profitDept += CLOUD_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfSun) {
-            userInfo[msg.sender].profitDept += itemInfo[SUN_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelOneItems.timestampOfSun) {
+            levelOneItems.timestampOfSun = block.timestamp;
+            user.profitDept += SUN_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelOneItemInfo[msg.sender].timestampOfGull) {
-            userInfo[msg.sender].profitDept += itemInfo[GULL_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelOneItems.timestampOfGull) {
+            levelOneItems.timestampOfGull = block.timestamp;
+            user.profitDept += GULL_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfPalm) {
-            userInfo[msg.sender].profitDept += itemInfo[PALM_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelTwoItems.timestampOfPalm) {
+            levelTwoItems.timestampOfPalm = block.timestamp;
+            user.profitDept += PALM_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfCoconuts) {
-            userInfo[msg.sender].profitDept += itemInfo[COCONUTS_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelTwoItems.timestampOfCoconuts) {
+            levelTwoItems.timestampOfCoconuts = block.timestamp;
+            user.profitDept += COCONUTS_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfGoldFish) {
-            userInfo[msg.sender].profitDept += itemInfo[GOLD_FISH_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelTwoItems.timestampOfGoldFish) {
+            levelTwoItems.timestampOfGoldFish = block.timestamp;
+            user.profitDept += GOLD_FISH_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfCrab) {
-            userInfo[msg.sender].profitDept += itemInfo[CRAB_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelTwoItems.timestampOfCrab) {
+            levelTwoItems.timestampOfCrab = block.timestamp;
+            user.profitDept += CRAB_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfShells) {
-            userInfo[msg.sender].profitDept += itemInfo[SHELLS_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelTwoItems.timestampOfShells) {
+            levelTwoItems.timestampOfShells = block.timestamp;
+            user.profitDept += SHELLS_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelTwoItemInfo[msg.sender].timestampOfColoredStones) {
-            userInfo[msg.sender].profitDept += itemInfo[COLORED_STONES_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelTwoItems.timestampOfColoredStones) {
+            levelTwoItems.timestampOfColoredStones = block.timestamp;
+            user.profitDept += COLORED_STONES_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfSandCastel) {
-            userInfo[msg.sender].profitDept += itemInfo[SAND_CASTEL_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelThreeItems.timestampOfSandCastel) {
+            levelThreeItems.timestampOfSandCastel = block.timestamp;
+            user.profitDept += SAND_CASTEL_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfChaiseLounge) {
-            userInfo[msg.sender].profitDept += itemInfo[CHAISE_LOUNGE_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelThreeItems.timestampOfChaiseLounge) {
+            levelThreeItems.timestampOfChaiseLounge = block.timestamp;
+            user.profitDept += CHAISE_LOUNGE_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfTowel) {
-            userInfo[msg.sender].profitDept += itemInfo[TOWEL_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelThreeItems.timestampOfTowel) {
+            levelThreeItems.timestampOfTowel = block.timestamp;
+            user.profitDept += TOWEL_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfSuncreen) {
-            userInfo[msg.sender].profitDept += itemInfo[SUNSCREEN_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelThreeItems.timestampOfSuncreen) {
+            levelThreeItems.timestampOfSuncreen = block.timestamp;
+            user.profitDept += SUNSCREEN_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfBasket) {
-            userInfo[msg.sender].profitDept += itemInfo[BASKET_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelThreeItems.timestampOfBasket) {
+            levelThreeItems.timestampOfBasket = block.timestamp;
+            user.profitDept += BASKET_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelThreeItemInfo[msg.sender].timestampOfUmbrella) {
-            userInfo[msg.sender].profitDept += itemInfo[UMBRELLA_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelThreeItems.timestampOfUmbrella) {
+            levelThreeItems.timestampOfUmbrella = block.timestamp;
+            user.profitDept += UMBRELLA_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfBoa) {
-            userInfo[msg.sender].profitDept += itemInfo[BOA_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFourItems.timestampOfBoa) {
+            levelFourItems.timestampOfBoa = block.timestamp;
+            user.profitDept += BOA_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfSunglasses) {
-            userInfo[msg.sender].profitDept += itemInfo[SUNGLASSES_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFourItems.timestampOfSunglasses) {
+            levelFourItems.timestampOfSunglasses = block.timestamp;
+            user.profitDept += SUNGLASSES_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfBaseballCap) {
-            userInfo[msg.sender].profitDept += itemInfo[BASEBALL_CAP_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFourItems.timestampOfBaseballCap) {
+            levelFourItems.timestampOfBaseballCap = block.timestamp;
+            user.profitDept += BASEBALL_CAP_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfSwimsuitTop) {
-            userInfo[msg.sender].profitDept += itemInfo[SWIMSUIT_TOP_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFourItems.timestampOfSwimsuitTop) {
+            levelFourItems.timestampOfSwimsuitTop = block.timestamp;
+            user.profitDept += SWIMSUIT_TOP_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfSwimsuitBriefs) {
-            userInfo[msg.sender].profitDept += itemInfo[SWIMSUIT_BRIEFS_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFourItems.timestampOfSwimsuitBriefs) {
+            levelFourItems.timestampOfSwimsuitBriefs = block.timestamp;
+            user.profitDept += SWIMSUIT_BRIEFS_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFourItemInfo[msg.sender].timestampOfCrocs) {
-            userInfo[msg.sender].profitDept += itemInfo[CROCS_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFourItems.timestampOfCrocs) {
+            levelFourItems.timestampOfCrocs = block.timestamp;
+            user.profitDept += CROCS_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfFlamingoRing) {
-            userInfo[msg.sender].profitDept += itemInfo[FLAMINGO_RING_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFiveItems.timestampOfFlamingoRing) {
+            levelFiveItems.timestampOfFlamingoRing = block.timestamp;
+            user.profitDept += FLAMINGO_RING_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfCoctail) {
-            userInfo[msg.sender].profitDept += itemInfo[DRINK_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFiveItems.timestampOfDrink) {
+            levelFiveItems.timestampOfDrink = block.timestamp;
+            user.profitDept += DRINK_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfGoldenColor) {
-            userInfo[msg.sender].profitDept += itemInfo[GOLDEN_COLOR_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFiveItems.timestampOfGoldenColor) {
+            levelFiveItems.timestampOfGoldenColor = block.timestamp;
+            user.profitDept += GOLDEN_COLOR_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfSmartWatch) {
-            userInfo[msg.sender].profitDept += itemInfo[SMART_WATCH_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFiveItems.timestampOfSmartWatch) {
+            levelFiveItems.timestampOfSmartWatch = block.timestamp;
+            user.profitDept += SMART_WATCH_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfSmartphone) {
-            userInfo[msg.sender].profitDept += itemInfo[SMARTPHONE_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFiveItems.timestampOfSmartphone) {
+            levelFiveItems.timestampOfSmartphone = block.timestamp;
+            user.profitDept += SMARTPHONE_DAILY_PROFIT;
         }
-        if(block.timestamp + 1 days > levelFiveItemInfo[msg.sender].timestampOfYacht) {
-            userInfo[msg.sender].profitDept += itemInfo[YACHT_PURCHASE_TYPE].dailyProfit;
+        if(block.timestamp + 1 days > levelFiveItems.timestampOfYacht) {
+            levelFiveItems.timestampOfYacht = block.timestamp;
+            user.profitDept += YACHT_DAILY_PROFIT;
         }
     }
+
+    function _setPrices(uint32[30] memory _prices) private {
+        prices = _prices;
+    }
+
 
     function _validatelevelOneItemInfoTypes(uint8 _itemType) private pure {
         require(
