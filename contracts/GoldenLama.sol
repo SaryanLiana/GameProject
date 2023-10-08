@@ -149,6 +149,7 @@ contract GoldenLama {
     event LevelThreeItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
     event LevelFourItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
     event LevelFiveItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
+    event Claimed(address indexed user, uint256 indexed profit, uint256 indexed timestamp);
 
     modifier onlyAdmin(){
         require(isAdmin[msg.sender] || msg.sender == owner, "GoldenLama:: This function can be called only by admins");
@@ -231,7 +232,26 @@ contract GoldenLama {
         require(sent , "GoldenLama:: not sent!");
     }
 
-    function purchaselevelOneItem(uint8 _itemType) external {
+    function purchasePersonage(uint8 _personageType) external {
+        require(_personageType < 30, "GoldenLama:: Invalide type!");
+        if(_personageType < 6) {
+            _purchaselevelOneItem(_personageType);
+        }
+        if(_personageType > 5 && _personageType < 12) {
+            _purchaselevelTwoItem(_personageType);
+        }
+        if(_personageType > 11 && _personageType < 18) {
+            _purchaselevelThreeItem(_personageType);
+        }
+        if(_personageType > 17 && _personageType < 24) {
+            _purchaselevelFourItem(_personageType);
+        }
+        if(_personageType > 23 && _personageType < 30) {
+            _purchaselevelFiveItem(_personageType);
+        }
+    }
+
+    function _purchaselevelOneItem(uint8 _itemType) private {
         require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 1 item!");
         
         LevelOneItemInfo storage userItems = levelOneItemInfo[msg.sender];
@@ -240,13 +260,13 @@ contract GoldenLama {
 
         require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
         require(
-            (_itemType == 0) || // Sand is always allowed
-            (_itemType == 1 && userItems.timestampOfSand > 0) || // Sky requires Sand
-            (_itemType == 2 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0) || // Sea requires Sand and Sky
-            (_itemType == 3 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0) || // Cloud requires Sand, Sky, and Sea
-            (_itemType == 4 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0 && userItems.timestampOfCloud > 0) || // Sun requires Sand, Sky, Sea, and Cloud
-            (_itemType == 5 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0 && userItems.timestampOfCloud > 0 && userItems.timestampOfSun > 0) , // Gull requires Sand, Sky, Sea, Cloud and Sun
-            "GoldenLama:: You must buy the previous items!"
+            (_itemType == 0 && userItems.timestampOfSand == 0) || // Sand is always allowed
+            (_itemType == 1 && userItems.timestampOfSky == 0 && userItems.timestampOfSand > 0) || // Sky requires Sand
+            (_itemType == 2 && userItems.timestampOfSea == 0 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0) || // Sea requires Sand and Sky
+            (_itemType == 3 && userItems.timestampOfCloud == 0 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0) || // Cloud requires Sand, Sky, and Sea
+            (_itemType == 4 && userItems.timestampOfSun == 0 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0 && userItems.timestampOfCloud > 0) || // Sun requires Sand, Sky, Sea, and Cloud
+            (_itemType == 5 && userItems.timestampOfGull == 0 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0 && userItems.timestampOfCloud > 0 && userItems.timestampOfSun > 0) , // Gull requires Sand, Sky, Sea, Cloud and Sun
+            "GoldenLama:: You must buy the previous items or you already purchased this item!"
         );
 
         // Update the corresponding timestamp
@@ -268,7 +288,7 @@ contract GoldenLama {
         emit LevelOneItemPurchased(msg.sender, _itemType, block.timestamp);
     }
 
-    function purchaselevelTwoItem(uint8 _itemType) external {
+    function _purchaselevelTwoItem(uint8 _itemType) private {
         require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 2 item!");
         require(levelOneItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the first line!");
         
@@ -278,13 +298,13 @@ contract GoldenLama {
 
         require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
         require(
-            (_itemType == 6) || // Palm is always allowed
-            (_itemType == 7 && userItems.timestampOfPalm > 0) || // Coconut requires Palm
-            (_itemType == 8 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0) || // Fish requires Coconut and Palm
-            (_itemType == 9 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0) || // Crab requires Palm, Coconut and Fish
-            (_itemType == 10 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0 && userItems.timestampOfCrab > 0) || // Shells requires Palm, Coconut, Fish and Crab
-            (_itemType == 11 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0 && userItems.timestampOfCrab > 0 && userItems.timestampOfShells > 0), // Stones requires Palm, Coconut, Fish, Crab and Shells
-            "GoldenLama:: You must buy the previous items!"
+            (_itemType == 6 && userItems.timestampOfPalm == 0) || // Palm is always allowed
+            (_itemType == 7 && userItems.timestampOfCoconuts == 0 && userItems.timestampOfPalm > 0) || // Coconut requires Palm
+            (_itemType == 8 && userItems.timestampOfGoldFish == 0 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0) || // Fish requires Coconut and Palm
+            (_itemType == 9 && userItems.timestampOfCrab == 0 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0) || // Crab requires Palm, Coconut and Fish
+            (_itemType == 10 && userItems.timestampOfShells == 0 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0 && userItems.timestampOfCrab > 0) || // Shells requires Palm, Coconut, Fish and Crab
+            (_itemType == 11 && userItems.timestampOfColoredStones == 0 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0 && userItems.timestampOfCrab > 0 && userItems.timestampOfShells > 0), // Stones requires Palm, Coconut, Fish, Crab and Shells
+            "GoldenLama:: You must buy the previous items or you already purchased this item!"
         );
 
         // Update the corresponding timestamp
@@ -307,8 +327,8 @@ contract GoldenLama {
 
     }
 
-    function purchaselevelThreeItem(uint8 _itemType) external {
-        require(block.timestamp > startTimestamp + 11 days, "GoldenLama:: Third line items are not available yet!");
+    function _purchaselevelThreeItem(uint8 _itemType) private {
+        require(block.timestamp > startTimestamp + 10 minutes, "GoldenLama:: Third line items are not available yet!");
         require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 3 item!");
         require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous lines!");      
         
@@ -318,13 +338,13 @@ contract GoldenLama {
 
         require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
         require(
-            (_itemType == 12) || // Sand castel is always allowed
-            (_itemType == 13 && userItems.timestampOfSandCastel > 0) || // Chaise Lounge requires Sand Castel
-            (_itemType == 14 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0) || // Towel requires Sand Castel and Chaise Lounge 
-            (_itemType == 15 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0) || // Sunscreen requires Sand Castel, Chaise Lounge and Towel
-            (_itemType == 16 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0 && userItems.timestampOfSuncreen > 0) || // Basket requires Sand Castel, Chaise Lounge, Towel and Sunscreen
-            (_itemType == 17 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0 && userItems.timestampOfSuncreen > 0 && userItems.timestampOfBasket > 0), // Umbrella requires Sand Castel, Chaise Lounge, Towel, Sunscreen and Basket 
-            "GoldenLama:: You must buy the previous items!"
+            (_itemType == 12 && userItems.timestampOfSandCastel == 0) || // Sand castel is always allowed
+            (_itemType == 13 && userItems.timestampOfChaiseLounge == 0 && userItems.timestampOfSandCastel > 0) || // Chaise Lounge requires Sand Castel
+            (_itemType == 14 && userItems.timestampOfTowel == 0 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0) || // Towel requires Sand Castel and Chaise Lounge 
+            (_itemType == 15 && userItems.timestampOfSuncreen == 0 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0) || // Sunscreen requires Sand Castel, Chaise Lounge and Towel
+            (_itemType == 16 && userItems.timestampOfBasket == 0 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0 && userItems.timestampOfSuncreen > 0) || // Basket requires Sand Castel, Chaise Lounge, Towel and Sunscreen
+            (_itemType == 17 && userItems.timestampOfUmbrella == 0 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0 && userItems.timestampOfSuncreen > 0 && userItems.timestampOfBasket > 0), // Umbrella requires Sand Castel, Chaise Lounge, Towel, Sunscreen and Basket 
+            "GoldenLama:: You must buy the previous items or you already purchased this item!"
         );
         
         // Update the corresponding timestamp
@@ -346,8 +366,8 @@ contract GoldenLama {
         emit LevelThreeItemPurchased(msg.sender, _itemType, block.timestamp);
     }
 
-    function purchaselevelFourItem(uint8 _itemType) external {
-        require(block.timestamp > startTimestamp + 21 days, "GoldenLama:: Fourth line items are not available yet!");
+    function _purchaselevelFourItem(uint8 _itemType) private {
+        require(block.timestamp > startTimestamp + 15 minutes, "GoldenLama:: Fourth line items are not available yet!");
         require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 4 item!");
         require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true && levelThreeItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous lines!");      
 
@@ -357,13 +377,13 @@ contract GoldenLama {
 
         require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
         require(
-            (_itemType == 18) || // Boa is always allowed
-            (_itemType == 19 && userItems.timestampOfBoa > 0) || // Sunglasses requires Boa
-            (_itemType == 20 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0) || // Baseball Cap requires Boa and Sunglasses 
-            (_itemType == 21 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0) || // Swimsuit Top requires Boa, Sunglasses and Baseball Cap
-            (_itemType == 22 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0 && userItems.timestampOfSwimsuitTop > 0) || // Swimsuit Briefs requires Boa, Sunglasses, Baseball Cap and Swimsuit Top
-            (_itemType == 23 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0 && userItems.timestampOfSwimsuitTop > 0 && userItems.timestampOfSwimsuitBriefs > 0), // Crocs requires Boa, Sunglasses, Baseball Cap, Swimsuit Top and Swimsuit Briefs 
-            "GoldenLama:: You must buy the previous items!"
+            (_itemType == 18 && userItems.timestampOfBoa == 0) || // Boa is always allowed
+            (_itemType == 19 && userItems.timestampOfSunglasses == 0 && userItems.timestampOfBoa > 0) || // Sunglasses requires Boa
+            (_itemType == 20 && userItems.timestampOfBaseballCap == 0 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0) || // Baseball Cap requires Boa and Sunglasses 
+            (_itemType == 21 && userItems.timestampOfSwimsuitTop == 0 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0) || // Swimsuit Top requires Boa, Sunglasses and Baseball Cap
+            (_itemType == 22 && userItems.timestampOfSwimsuitBriefs == 0 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0 && userItems.timestampOfSwimsuitTop > 0) || // Swimsuit Briefs requires Boa, Sunglasses, Baseball Cap and Swimsuit Top
+            (_itemType == 23 && userItems.timestampOfCrocs == 0 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0 && userItems.timestampOfSwimsuitTop > 0 && userItems.timestampOfSwimsuitBriefs > 0), // Crocs requires Boa, Sunglasses, Baseball Cap, Swimsuit Top and Swimsuit Briefs 
+            "GoldenLama:: You must buy the previous items or you already purchased this item!"
         );
 
         // Update the corresponding timestamp
@@ -385,8 +405,8 @@ contract GoldenLama {
         emit LevelFourItemPurchased(msg.sender, _itemType, block.timestamp);
     }
 
-    function purchaselevelFiveItem(uint8 _itemType) external {
-        require(block.timestamp > startTimestamp + 41 days, "GoldenLama:: Fifth line items are not available yet!");
+    function _purchaselevelFiveItem(uint8 _itemType) private {
+        require(block.timestamp > startTimestamp + 20 minutes, "GoldenLama:: Fifth line items are not available yet!");
         require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 5 item!");
         require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true && levelThreeItemInfo[msg.sender].allItemsBought == true && levelFourItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous lines!");
        
@@ -396,13 +416,13 @@ contract GoldenLama {
 
         require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
         require(
-            (_itemType == 24) || //  Flamingo Ring is always allowed
-            (_itemType == 25 && userItems.timestampOfFlamingoRing > 0) || // Drink requires  Flamingo Ring
-            (_itemType == 26 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0) || // Golden Color Cap requires  Flamingo Ring and Drink 
-            (_itemType == 27 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0) || // Swimsuit Top requires  Flamingo Ring, Drink and Golden Color Cap
-            (_itemType == 28 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0 && userItems.timestampOfSmartWatch > 0) || // Smartphone requires  Flamingo Ring, Drink, Golden Color Cap and Swimsuit Top
-            (_itemType == 29 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0 && userItems.timestampOfSmartWatch > 0 && userItems.timestampOfSmartphone > 0), // Yacht requires  Flamingo Ring, Drink, Golden Color Cap, Swimsuit Top and Smartphone 
-            "GoldenLama:: You must buy the previous items!"
+            (_itemType == 24 && userItems.timestampOfFlamingoRing == 0) || //  Flamingo Ring is always allowed
+            (_itemType == 25 && userItems.timestampOfDrink == 0 && userItems.timestampOfFlamingoRing > 0) || // Drink requires  Flamingo Ring
+            (_itemType == 26 && userItems.timestampOfGoldenColor == 0 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0) || // Golden Color Cap requires  Flamingo Ring and Drink 
+            (_itemType == 27 && userItems.timestampOfSmartWatch == 0 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0) || // Swimsuit Top requires  Flamingo Ring, Drink and Golden Color Cap
+            (_itemType == 28 && userItems.timestampOfSmartphone == 0 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0 && userItems.timestampOfSmartWatch > 0) || // Smartphone requires  Flamingo Ring, Drink, Golden Color Cap and Swimsuit Top
+            (_itemType == 29 && userItems.timestampOfYacht == 0 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0 && userItems.timestampOfSmartWatch > 0 && userItems.timestampOfSmartphone > 0), // Yacht requires  Flamingo Ring, Drink, Golden Color Cap, Swimsuit Top and Smartphone 
+            "GoldenLama:: You must buy the previous items or you already purchased this item!"
         );
 
         // Update the corresponding timestamp
@@ -425,6 +445,7 @@ contract GoldenLama {
     }
 
     function claim() external {
+        uint256 profit;
         UserInfo storage user = userInfo[msg.sender];
         LevelOneItemInfo storage levelOneItems = levelOneItemInfo[msg.sender];
         LevelTwoItemInfo storage levelTwoItems = levelTwoItemInfo[msg.sender];
@@ -432,126 +453,132 @@ contract GoldenLama {
         LevelFourItemInfo storage levelFourItems = levelFourItemInfo[msg.sender];
         LevelFiveItemInfo storage levelFiveItems = levelFiveItemInfo[msg.sender];
 
-        if(levelOneItems.timestampOfSand > 0 && block.timestamp > levelOneItems.timestampOfSand + 1 days) {
+        if(levelOneItems.timestampOfSand > 0 && block.timestamp > levelOneItems.timestampOfSand + 1 minutes) {
             levelOneItems.timestampOfSand = block.timestamp;
-            user.profitDept += SAND_DAILY_PROFIT;
+            profit += SAND_DAILY_PROFIT;
         }
-        if(levelOneItems.timestampOfSky > 0 && block.timestamp > levelOneItems.timestampOfSky + 1 days ) {
+        if(levelOneItems.timestampOfSky > 0 && block.timestamp > levelOneItems.timestampOfSky + 1 minutes ) {
             levelOneItems.timestampOfSky = block.timestamp;
-            user.profitDept += SKY_DAILY_PROFIT;
+            profit += SKY_DAILY_PROFIT;
         }
-        if(levelOneItems.timestampOfSea > 0 && block.timestamp > levelOneItems.timestampOfSea + 1 days) {
+        if(levelOneItems.timestampOfSea > 0 && block.timestamp > levelOneItems.timestampOfSea + 1 minutes) {
             levelOneItems.timestampOfSea = block.timestamp;
-            user.profitDept += SEA_DAILY_PROFIT;
+            profit += SEA_DAILY_PROFIT;
         }
-        if(levelOneItems.timestampOfCloud > 0 && block.timestamp > levelOneItems.timestampOfCloud + 1 days) {
+        if(levelOneItems.timestampOfCloud > 0 && block.timestamp > levelOneItems.timestampOfCloud + 1 minutes) {
             levelOneItems.timestampOfCloud = block.timestamp;
-            user.profitDept += CLOUD_DAILY_PROFIT;
+            profit += CLOUD_DAILY_PROFIT;
         }
-        if(levelOneItems.timestampOfSun > 0 && block.timestamp > levelOneItems.timestampOfSun + 1 days) {
+        if(levelOneItems.timestampOfSun > 0 && block.timestamp > levelOneItems.timestampOfSun + 1 minutes) {
             levelOneItems.timestampOfSun = block.timestamp;
-            user.profitDept += SUN_DAILY_PROFIT;
+            profit += SUN_DAILY_PROFIT;
         }
-        if(levelOneItems.timestampOfGull > 0 && block.timestamp > levelOneItems.timestampOfGull + 1 days) {
+        if(levelOneItems.timestampOfGull > 0 && block.timestamp > levelOneItems.timestampOfGull + 1 minutes) {
             levelOneItems.timestampOfGull = block.timestamp;
-            user.profitDept += GULL_DAILY_PROFIT;
+            profit += GULL_DAILY_PROFIT;
         }
-        if(levelTwoItems.timestampOfPalm > 0 && block.timestamp > levelTwoItems.timestampOfPalm + 1 days) {
+        if(levelTwoItems.timestampOfPalm > 0 && block.timestamp > levelTwoItems.timestampOfPalm + 1 minutes) {
             levelTwoItems.timestampOfPalm = block.timestamp;
-            user.profitDept += PALM_DAILY_PROFIT;
+            profit += PALM_DAILY_PROFIT;
         }
-        if(levelTwoItems.timestampOfCoconuts > 0 && block.timestamp > levelTwoItems.timestampOfCoconuts + 1 days) {
+        if(levelTwoItems.timestampOfCoconuts > 0 && block.timestamp > levelTwoItems.timestampOfCoconuts + 1 minutes) {
             levelTwoItems.timestampOfCoconuts = block.timestamp;
-            user.profitDept += COCONUTS_DAILY_PROFIT;
+            profit += COCONUTS_DAILY_PROFIT;
         }
-        if(levelTwoItems.timestampOfGoldFish > 0 && block.timestamp > levelTwoItems.timestampOfGoldFish + 1 days) {
+        if(levelTwoItems.timestampOfGoldFish > 0 && block.timestamp > levelTwoItems.timestampOfGoldFish + 1 minutes) {
             levelTwoItems.timestampOfGoldFish = block.timestamp;
-            user.profitDept += GOLD_FISH_DAILY_PROFIT;
+            profit += GOLD_FISH_DAILY_PROFIT;
         }
-        if(levelTwoItems.timestampOfCrab > 0 && block.timestamp > levelTwoItems.timestampOfCrab + 1 days) {
+        if(levelTwoItems.timestampOfCrab > 0 && block.timestamp > levelTwoItems.timestampOfCrab + 1 minutes) {
             levelTwoItems.timestampOfCrab = block.timestamp;
-            user.profitDept += CRAB_DAILY_PROFIT;
+            profit += CRAB_DAILY_PROFIT;
         }
-        if(levelTwoItems.timestampOfShells > 0 && block.timestamp > levelTwoItems.timestampOfShells + 1 days) {
+        if(levelTwoItems.timestampOfShells > 0 && block.timestamp > levelTwoItems.timestampOfShells + 1 minutes) {
             levelTwoItems.timestampOfShells = block.timestamp;
-            user.profitDept += SHELLS_DAILY_PROFIT;
+            profit += SHELLS_DAILY_PROFIT;
         }
-        if(levelTwoItems.timestampOfColoredStones > 0 && block.timestamp > levelTwoItems.timestampOfColoredStones + 1 days) {
+        if(levelTwoItems.timestampOfColoredStones > 0 && block.timestamp > levelTwoItems.timestampOfColoredStones + 1 minutes) {
             levelTwoItems.timestampOfColoredStones = block.timestamp;
-            user.profitDept += COLORED_STONES_DAILY_PROFIT;
+            profit += COLORED_STONES_DAILY_PROFIT;
         }
-        if(levelThreeItems.timestampOfSandCastel > 0 && block.timestamp > levelThreeItems.timestampOfSandCastel + 1 days) {
+        if(levelThreeItems.timestampOfSandCastel > 0 && block.timestamp > levelThreeItems.timestampOfSandCastel + 1 minutes) {
             levelThreeItems.timestampOfSandCastel = block.timestamp;
-            user.profitDept += SAND_CASTEL_DAILY_PROFIT;
+            profit += SAND_CASTEL_DAILY_PROFIT;
         }
-        if(levelThreeItems.timestampOfChaiseLounge > 0 && block.timestamp > levelThreeItems.timestampOfChaiseLounge + 1 days) {
+        if(levelThreeItems.timestampOfChaiseLounge > 0 && block.timestamp > levelThreeItems.timestampOfChaiseLounge + 1 minutes) {
             levelThreeItems.timestampOfChaiseLounge = block.timestamp;
-            user.profitDept += CHAISE_LOUNGE_DAILY_PROFIT;
+            profit += CHAISE_LOUNGE_DAILY_PROFIT;
         }
-        if(levelThreeItems.timestampOfTowel > 0 && block.timestamp > levelThreeItems.timestampOfTowel + 1 days) {
+        if(levelThreeItems.timestampOfTowel > 0 && block.timestamp > levelThreeItems.timestampOfTowel + 1 minutes) {
             levelThreeItems.timestampOfTowel = block.timestamp;
-            user.profitDept += TOWEL_DAILY_PROFIT;
+            profit += TOWEL_DAILY_PROFIT;
         }
-        if(levelThreeItems.timestampOfSuncreen > 0 && block.timestamp > levelThreeItems.timestampOfSuncreen + 1 days) {
+        if(levelThreeItems.timestampOfSuncreen > 0 && block.timestamp > levelThreeItems.timestampOfSuncreen + 1 minutes) {
             levelThreeItems.timestampOfSuncreen = block.timestamp;
-            user.profitDept += SUNSCREEN_DAILY_PROFIT;
+            profit += SUNSCREEN_DAILY_PROFIT;
         }
-        if(levelThreeItems.timestampOfBasket > 0 && block.timestamp > levelThreeItems.timestampOfBasket + 1 days) {
+        if(levelThreeItems.timestampOfBasket > 0 && block.timestamp > levelThreeItems.timestampOfBasket + 1 minutes) {
             levelThreeItems.timestampOfBasket = block.timestamp;
-            user.profitDept += BASKET_DAILY_PROFIT;
+            profit += BASKET_DAILY_PROFIT;
         }
-        if(levelThreeItems.timestampOfUmbrella > 0 && block.timestamp > levelThreeItems.timestampOfUmbrella + 1 days) {
+        if(levelThreeItems.timestampOfUmbrella > 0 && block.timestamp > levelThreeItems.timestampOfUmbrella + 1 minutes) {
             levelThreeItems.timestampOfUmbrella = block.timestamp;
-            user.profitDept += UMBRELLA_DAILY_PROFIT;
+            profit += UMBRELLA_DAILY_PROFIT;
         }
-        if(levelFourItems.timestampOfBoa > 0 && block.timestamp > levelFourItems.timestampOfBoa + 1 days) {
+        if(levelFourItems.timestampOfBoa > 0 && block.timestamp > levelFourItems.timestampOfBoa + 1 minutes) {
             levelFourItems.timestampOfBoa = block.timestamp;
-            user.profitDept += BOA_DAILY_PROFIT;
+            profit += BOA_DAILY_PROFIT;
         }
-        if(levelFourItems.timestampOfSunglasses > 0 && block.timestamp > levelFourItems.timestampOfSunglasses + 1 days) {
+        if(levelFourItems.timestampOfSunglasses > 0 && block.timestamp > levelFourItems.timestampOfSunglasses + 1 minutes) {
             levelFourItems.timestampOfSunglasses = block.timestamp;
-            user.profitDept += SUNGLASSES_DAILY_PROFIT;
+            profit += SUNGLASSES_DAILY_PROFIT;
         }
-        if(levelFourItems.timestampOfBaseballCap > 0 && block.timestamp > levelFourItems.timestampOfBaseballCap + 1 days) {
+        if(levelFourItems.timestampOfBaseballCap > 0 && block.timestamp > levelFourItems.timestampOfBaseballCap + 1 minutes) {
             levelFourItems.timestampOfBaseballCap = block.timestamp;
-            user.profitDept += BASEBALL_CAP_DAILY_PROFIT;
+            profit += BASEBALL_CAP_DAILY_PROFIT;
         }
-        if(levelFourItems.timestampOfSwimsuitTop > 0 && block.timestamp > levelFourItems.timestampOfSwimsuitTop + 1 days) {
+        if(levelFourItems.timestampOfSwimsuitTop > 0 && block.timestamp > levelFourItems.timestampOfSwimsuitTop + 1 minutes) {
             levelFourItems.timestampOfSwimsuitTop = block.timestamp;
-            user.profitDept += SWIMSUIT_TOP_DAILY_PROFIT;
+            profit += SWIMSUIT_TOP_DAILY_PROFIT;
         }
-        if(levelFourItems.timestampOfSwimsuitBriefs > 0 && block.timestamp > levelFourItems.timestampOfSwimsuitBriefs + 1 days) {
+        if(levelFourItems.timestampOfSwimsuitBriefs > 0 && block.timestamp > levelFourItems.timestampOfSwimsuitBriefs + 1 minutes) {
             levelFourItems.timestampOfSwimsuitBriefs = block.timestamp;
-            user.profitDept += SWIMSUIT_BRIEFS_DAILY_PROFIT;
+            profit += SWIMSUIT_BRIEFS_DAILY_PROFIT;
         }
-        if(levelFourItems.timestampOfCrocs > 0 && block.timestamp > levelFourItems.timestampOfCrocs + 1 days) {
+        if(levelFourItems.timestampOfCrocs > 0 && block.timestamp > levelFourItems.timestampOfCrocs + 1 minutes) {
             levelFourItems.timestampOfCrocs = block.timestamp;
-            user.profitDept += CROCS_DAILY_PROFIT;
+            profit += CROCS_DAILY_PROFIT;
         }
-        if(levelFiveItems.timestampOfFlamingoRing > 0 && block.timestamp > levelFiveItems.timestampOfFlamingoRing + 1 days) {
+        if(levelFiveItems.timestampOfFlamingoRing > 0 && block.timestamp > levelFiveItems.timestampOfFlamingoRing + 1 minutes) {
             levelFiveItems.timestampOfFlamingoRing = block.timestamp;
-            user.profitDept += FLAMINGO_RING_DAILY_PROFIT;
+            profit += FLAMINGO_RING_DAILY_PROFIT;
         }
-        if(levelFiveItems.timestampOfDrink > 0 && block.timestamp > levelFiveItems.timestampOfDrink + 1 days) {
+        if(levelFiveItems.timestampOfDrink > 0 && block.timestamp > levelFiveItems.timestampOfDrink + 1 minutes) {
             levelFiveItems.timestampOfDrink = block.timestamp;
-            user.profitDept += DRINK_DAILY_PROFIT;
+            profit += DRINK_DAILY_PROFIT;
         }
-        if(levelFiveItems.timestampOfGoldenColor > 0 && block.timestamp > levelFiveItems.timestampOfGoldenColor + 1 days) {
+        if(levelFiveItems.timestampOfGoldenColor > 0 && block.timestamp > levelFiveItems.timestampOfGoldenColor + 1 minutes) {
             levelFiveItems.timestampOfGoldenColor = block.timestamp;
-            user.profitDept += GOLDEN_COLOR_DAILY_PROFIT;
+            profit += GOLDEN_COLOR_DAILY_PROFIT;
         }
-        if(levelFiveItems.timestampOfSmartWatch > 0 && block.timestamp > levelFiveItems.timestampOfSmartWatch + 1 days) {
+        if(levelFiveItems.timestampOfSmartWatch > 0 && block.timestamp > levelFiveItems.timestampOfSmartWatch + 1 minutes) {
             levelFiveItems.timestampOfSmartWatch = block.timestamp;
-            user.profitDept += SMART_WATCH_DAILY_PROFIT;
+            profit += SMART_WATCH_DAILY_PROFIT;
         }
-        if(levelFiveItems.timestampOfSmartphone > 0 && block.timestamp > levelFiveItems.timestampOfSmartphone + 1 days) {
+        if(levelFiveItems.timestampOfSmartphone > 0 && block.timestamp > levelFiveItems.timestampOfSmartphone + 1 minutes) {
             levelFiveItems.timestampOfSmartphone = block.timestamp;
-            user.profitDept += SMARTPHONE_DAILY_PROFIT;
+            profit += SMARTPHONE_DAILY_PROFIT;
         }
-        if(levelFiveItems.timestampOfYacht > 0 && block.timestamp > levelFiveItems.timestampOfYacht + 1 days) {
+        if(levelFiveItems.timestampOfYacht > 0 && block.timestamp > levelFiveItems.timestampOfYacht + 1 minutes) {
             levelFiveItems.timestampOfYacht = block.timestamp;
-            user.profitDept += YACHT_DAILY_PROFIT;
+            profit += YACHT_DAILY_PROFIT;
         }
+
+        user.balanceOfCoin += profit;
+        user.profitDept +=profit;
+
+        emit Claimed(msg.sender, profit, block.timestamp);
+
     }
 
     function _setPrices(uint32[30] memory _prices) private {

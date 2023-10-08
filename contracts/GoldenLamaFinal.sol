@@ -181,7 +181,7 @@ contract GoldenLama {
         addressToHisReferrer[_user] = referrer;
     }
 
-    function _setPrices(uint32[30] calldata _prices) external onlyAdmin {
+    function setPrices(uint32[30] calldata _prices) external onlyAdmin {
         prices = _prices;
     }
 
@@ -234,197 +234,216 @@ contract GoldenLama {
         require(sent , "GoldenLama:: not sent!");
     }
 
-    function purchaselevelOneItem(uint8 _itemType) external {
-        require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 1 item!");
+    function purchasePersonage(uint8 _personageType) external {
+        require(_personageType < 30, "GoldenLama:: Invalide type!");
+        if(_personageType < 6) {
+            _purchaselevelOneItem(_personageType);
+        }
+        if(_personageType > 5 && _personageType < 12) {
+            _purchaselevelTwoItem(_personageType);
+        }
+        if(_personageType > 11 && _personageType < 18) {
+            _purchaselevelThreeItem(_personageType);
+        }
+        if(_personageType > 17 && _personageType < 24) {
+            _purchaselevelFourItem(_personageType);
+        }
+        if(_personageType > 23 && _personageType < 30) {
+            _purchaselevelFiveItem(_personageType);
+        }
+    }
+
+    function _purchaselevelOneItem(uint8 _personageType) private {
+        require(userInfo[msg.sender].balanceOfCocktail >= prices[_personageType], "GoldenLama:: Insufficient balance for buying Level 1 item!");
         
         LevelOneItemInfo storage userItems = levelOneItemInfo[msg.sender];
-        _validatelevelOneItemInfoTypes(_itemType);
-        userInfo[msg.sender].balanceOfCocktail -= prices[_itemType];
+        _validatelevelOneItemInfoTypes(_personageType);
+        userInfo[msg.sender].balanceOfCocktail -= prices[_personageType];
 
         require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
         require(
-            (_itemType == 0) || // Sand is always allowed
-            (_itemType == 1 && userItems.timestampOfSand > 0) || // Sky requires Sand
-            (_itemType == 2 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0) || // Sea requires Sand and Sky
-            (_itemType == 3 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0) || // Cloud requires Sand, Sky, and Sea
-            (_itemType == 4 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0 && userItems.timestampOfCloud > 0) || // Sun requires Sand, Sky, Sea, and Cloud
-            (_itemType == 5 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0 && userItems.timestampOfCloud > 0 && userItems.timestampOfSun > 0) , // Gull requires Sand, Sky, Sea, Cloud and Sun
+            (_personageType == 0) || // Sand is always allowed
+            (_personageType == 1 && userItems.timestampOfSand > 0) || // Sky requires Sand
+            (_personageType == 2 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0) || // Sea requires Sand and Sky
+            (_personageType == 3 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0) || // Cloud requires Sand, Sky, and Sea
+            (_personageType == 4 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0 && userItems.timestampOfCloud > 0) || // Sun requires Sand, Sky, Sea, and Cloud
+            (_personageType == 5 && userItems.timestampOfSand > 0 && userItems.timestampOfSky > 0 && userItems.timestampOfSea > 0 && userItems.timestampOfCloud > 0 && userItems.timestampOfSun > 0) , // Gull requires Sand, Sky, Sea, Cloud and Sun
             "GoldenLama:: You must buy the previous items!"
         );
 
         // Update the corresponding timestamp
-        if (_itemType == 0) {
+        if (_personageType == 0) {
             userItems.timestampOfSand = block.timestamp;
-        } else if (_itemType == 1) {
+        } else if (_personageType == 1) {
             userItems.timestampOfSky = block.timestamp;
-        } else if (_itemType == 2) {
+        } else if (_personageType == 2) {
             userItems.timestampOfSea = block.timestamp;
-        } else if (_itemType == 3) {
+        } else if (_personageType == 3) {
             userItems.timestampOfCloud = block.timestamp;
-        } else if (_itemType == 4) {
+        } else if (_personageType == 4) {
             userItems.timestampOfSun = block.timestamp;
         } else {
             userItems.timestampOfGull = block.timestamp;
             userItems.allItemsBought = true;
         }
 
-        emit LevelOneItemPurchased(msg.sender, _itemType, block.timestamp);
+        emit LevelOneItemPurchased(msg.sender, _personageType, block.timestamp);
     }
 
-    function purchaselevelTwoItem(uint8 _itemType) external {
-        require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 2 item!");
+    function _purchaselevelTwoItem(uint8 _personageType) private {
+        require(userInfo[msg.sender].balanceOfCocktail >= prices[_personageType], "GoldenLama:: Insufficient balance for buying Level 2 item!");
         require(levelOneItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the first line!");
         
         LevelTwoItemInfo storage userItems = levelTwoItemInfo[msg.sender];
-        _validatelevelTwoItemInfoTypes(_itemType);
-        userInfo[msg.sender].balanceOfCocktail -= prices[_itemType];
+        _validatelevelTwoItemInfoTypes(_personageType);
+        userInfo[msg.sender].balanceOfCocktail -= prices[_personageType];
 
         require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
         require(
-            (_itemType == 6) || // Palm is always allowed
-            (_itemType == 7 && userItems.timestampOfPalm > 0) || // Coconut requires Palm
-            (_itemType == 8 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0) || // Fish requires Coconut and Palm
-            (_itemType == 9 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0) || // Crab requires Palm, Coconut and Fish
-            (_itemType == 10 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0 && userItems.timestampOfCrab > 0) || // Shells requires Palm, Coconut, Fish and Crab
-            (_itemType == 11 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0 && userItems.timestampOfCrab > 0 && userItems.timestampOfShells > 0), // Stones requires Palm, Coconut, Fish, Crab and Shells
+            (_personageType == 6) || // Palm is always allowed
+            (_personageType == 7 && userItems.timestampOfPalm > 0) || // Coconut requires Palm
+            (_personageType == 8 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0) || // Fish requires Coconut and Palm
+            (_personageType == 9 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0) || // Crab requires Palm, Coconut and Fish
+            (_personageType == 10 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0 && userItems.timestampOfCrab > 0) || // Shells requires Palm, Coconut, Fish and Crab
+            (_personageType == 11 && userItems.timestampOfPalm > 0 && userItems.timestampOfCoconuts > 0 && userItems.timestampOfGoldFish > 0 && userItems.timestampOfCrab > 0 && userItems.timestampOfShells > 0), // Stones requires Palm, Coconut, Fish, Crab and Shells
             "GoldenLama:: You must buy the previous items!"
         );
 
         // Update the corresponding timestamp
-        if (_itemType == 6) {
+        if (_personageType == 6) {
             userItems.timestampOfPalm = block.timestamp;
-        } else if (_itemType == 7) {
+        } else if (_personageType == 7) {
             userItems.timestampOfCoconuts = block.timestamp;
-        } else if (_itemType == 8) {
+        } else if (_personageType == 8) {
             userItems.timestampOfGoldFish = block.timestamp;
-        } else if (_itemType == 9) {
+        } else if (_personageType == 9) {
             userItems.timestampOfCrab = block.timestamp;
-        } else if (_itemType == 10) {
+        } else if (_personageType == 10) {
             userItems.timestampOfShells = block.timestamp;
         } else {
             userItems.timestampOfColoredStones = block.timestamp;
             userItems.allItemsBought = true;
         }
 
-        emit LevelTwoItemPurchased(msg.sender, _itemType, block.timestamp);
+        emit LevelTwoItemPurchased(msg.sender, _personageType, block.timestamp);
 
     }
 
-    function purchaselevelThreeItem(uint8 _itemType) external {
+    function _purchaselevelThreeItem(uint8 _personageType) private {
         require(block.timestamp > startTimestamp + 10 minutes, "GoldenLama:: Third line items are not available yet!");
-        require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 3 item!");
+        require(userInfo[msg.sender].balanceOfCocktail >= prices[_personageType], "GoldenLama:: Insufficient balance for buying Level 3 item!");
         require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous lines!");      
         
         LevelThreeItemInfo storage userItems = levelThreeItemInfo[msg.sender];
-        _validatelevelThreeItemInfoTypes(_itemType);
-        userInfo[msg.sender].balanceOfCocktail -= prices[_itemType];
+        _validatelevelThreeItemInfoTypes(_personageType);
+        userInfo[msg.sender].balanceOfCocktail -= prices[_personageType];
 
         require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
         require(
-            (_itemType == 12) || // Sand castel is always allowed
-            (_itemType == 13 && userItems.timestampOfSandCastel > 0) || // Chaise Lounge requires Sand Castel
-            (_itemType == 14 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0) || // Towel requires Sand Castel and Chaise Lounge 
-            (_itemType == 15 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0) || // Sunscreen requires Sand Castel, Chaise Lounge and Towel
-            (_itemType == 16 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0 && userItems.timestampOfSuncreen > 0) || // Basket requires Sand Castel, Chaise Lounge, Towel and Sunscreen
-            (_itemType == 17 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0 && userItems.timestampOfSuncreen > 0 && userItems.timestampOfBasket > 0), // Umbrella requires Sand Castel, Chaise Lounge, Towel, Sunscreen and Basket 
+            (_personageType == 12) || // Sand castel is always allowed
+            (_personageType == 13 && userItems.timestampOfSandCastel > 0) || // Chaise Lounge requires Sand Castel
+            (_personageType == 14 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0) || // Towel requires Sand Castel and Chaise Lounge 
+            (_personageType == 15 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0) || // Sunscreen requires Sand Castel, Chaise Lounge and Towel
+            (_personageType == 16 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0 && userItems.timestampOfSuncreen > 0) || // Basket requires Sand Castel, Chaise Lounge, Towel and Sunscreen
+            (_personageType == 17 && userItems.timestampOfSandCastel > 0 && userItems.timestampOfChaiseLounge > 0 && userItems.timestampOfTowel > 0 && userItems.timestampOfSuncreen > 0 && userItems.timestampOfBasket > 0), // Umbrella requires Sand Castel, Chaise Lounge, Towel, Sunscreen and Basket 
             "GoldenLama:: You must buy the previous items!"
         );
         
         // Update the corresponding timestamp
-        if (_itemType == 12) {
+        if (_personageType == 12) {
             userItems.timestampOfSandCastel = block.timestamp;
-        } else if (_itemType == 13) {
+        } else if (_personageType == 13) {
             userItems.timestampOfChaiseLounge = block.timestamp;
-        } else if (_itemType == 14) {
+        } else if (_personageType == 14) {
             userItems.timestampOfTowel = block.timestamp;
-        } else if (_itemType == 15) {
+        } else if (_personageType == 15) {
             userItems.timestampOfSuncreen = block.timestamp;
-        } else if (_itemType == 16) {
+        } else if (_personageType == 16) {
             userItems.timestampOfBasket = block.timestamp;
         } else {
             userItems.timestampOfUmbrella = block.timestamp;
             userItems.allItemsBought = true;
         }
         
-        emit LevelThreeItemPurchased(msg.sender, _itemType, block.timestamp);
+        emit LevelThreeItemPurchased(msg.sender, _personageType, block.timestamp);
     }
 
-    function purchaselevelFourItem(uint8 _itemType) external {
+    function _purchaselevelFourItem(uint8 _personageType) private {
         require(block.timestamp > startTimestamp + 15 minutes, "GoldenLama:: Fourth line items are not available yet!");
-        require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 4 item!");
+        require(userInfo[msg.sender].balanceOfCocktail >= prices[_personageType], "GoldenLama:: Insufficient balance for buying Level 4 item!");
         require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true && levelThreeItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous lines!");      
 
         LevelFourItemInfo storage userItems = levelFourItemInfo[msg.sender];
-        _validatelevelFourItemInfoTypes(_itemType);
-        userInfo[msg.sender].balanceOfCocktail -= prices[_itemType];
+        _validatelevelFourItemInfoTypes(_personageType);
+        userInfo[msg.sender].balanceOfCocktail -= prices[_personageType];
 
         require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
         require(
-            (_itemType == 18) || // Boa is always allowed
-            (_itemType == 19 && userItems.timestampOfBoa > 0) || // Sunglasses requires Boa
-            (_itemType == 20 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0) || // Baseball Cap requires Boa and Sunglasses 
-            (_itemType == 21 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0) || // Swimsuit Top requires Boa, Sunglasses and Baseball Cap
-            (_itemType == 22 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0 && userItems.timestampOfSwimsuitTop > 0) || // Swimsuit Briefs requires Boa, Sunglasses, Baseball Cap and Swimsuit Top
-            (_itemType == 23 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0 && userItems.timestampOfSwimsuitTop > 0 && userItems.timestampOfSwimsuitBriefs > 0), // Crocs requires Boa, Sunglasses, Baseball Cap, Swimsuit Top and Swimsuit Briefs 
+            (_personageType == 18) || // Boa is always allowed
+            (_personageType == 19 && userItems.timestampOfBoa > 0) || // Sunglasses requires Boa
+            (_personageType == 20 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0) || // Baseball Cap requires Boa and Sunglasses 
+            (_personageType == 21 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0) || // Swimsuit Top requires Boa, Sunglasses and Baseball Cap
+            (_personageType == 22 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0 && userItems.timestampOfSwimsuitTop > 0) || // Swimsuit Briefs requires Boa, Sunglasses, Baseball Cap and Swimsuit Top
+            (_personageType == 23 && userItems.timestampOfBoa > 0 && userItems.timestampOfSunglasses > 0 && userItems.timestampOfBaseballCap > 0 && userItems.timestampOfSwimsuitTop > 0 && userItems.timestampOfSwimsuitBriefs > 0), // Crocs requires Boa, Sunglasses, Baseball Cap, Swimsuit Top and Swimsuit Briefs 
             "GoldenLama:: You must buy the previous items!"
         );
 
         // Update the corresponding timestamp
-        if (_itemType == 18) {
+        if (_personageType == 18) {
             userItems.timestampOfBoa = block.timestamp;
-        } else if (_itemType == 19) {
+        } else if (_personageType == 19) {
             userItems.timestampOfSunglasses = block.timestamp;
-        } else if (_itemType == 20) {
+        } else if (_personageType == 20) {
             userItems.timestampOfBaseballCap = block.timestamp;
-        } else if (_itemType == 21) {
+        } else if (_personageType == 21) {
             userItems.timestampOfSwimsuitTop = block.timestamp;
-        } else if (_itemType == 22) {
+        } else if (_personageType == 22) {
             userItems.timestampOfSwimsuitBriefs = block.timestamp;
         } else {
             userItems.timestampOfCrocs = block.timestamp;
             userItems.allItemsBought = true;
         }
 
-        emit LevelFourItemPurchased(msg.sender, _itemType, block.timestamp);
+        emit LevelFourItemPurchased(msg.sender, _personageType, block.timestamp);
     }
 
-    function purchaselevelFiveItem(uint8 _itemType) external {
+    function _purchaselevelFiveItem(uint8 _personageType) private {
         require(block.timestamp > startTimestamp + 20 minutes, "GoldenLama:: Fifth line items are not available yet!");
-        require(userInfo[msg.sender].balanceOfCocktail >= prices[_itemType], "GoldenLama:: Insufficient balance for buying Level 5 item!");
+        require(userInfo[msg.sender].balanceOfCocktail >= prices[_personageType], "GoldenLama:: Insufficient balance for buying Level 5 item!");
         require(levelOneItemInfo[msg.sender].allItemsBought == true && levelTwoItemInfo[msg.sender].allItemsBought == true && levelThreeItemInfo[msg.sender].allItemsBought == true && levelFourItemInfo[msg.sender].allItemsBought == true, "GoldenLama:: First you need to buy items in the previous lines!");
        
         LevelFiveItemInfo storage userItems = levelFiveItemInfo[msg.sender];
-        _validatelevelFiveItemInfoTypes(_itemType);
-        userInfo[msg.sender].balanceOfCocktail -= prices[_itemType];
+        _validatelevelFiveItemInfoTypes(_personageType);
+        userInfo[msg.sender].balanceOfCocktail -= prices[_personageType];
 
         require(userItems.allItemsBought == false, "GoldenLama:: Item already purchased!");
         require(
-            (_itemType == 24) || //  Flamingo Ring is always allowed
-            (_itemType == 25 && userItems.timestampOfFlamingoRing > 0) || // Drink requires  Flamingo Ring
-            (_itemType == 26 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0) || // Golden Color Cap requires  Flamingo Ring and Drink 
-            (_itemType == 27 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0) || // Swimsuit Top requires  Flamingo Ring, Drink and Golden Color Cap
-            (_itemType == 28 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0 && userItems.timestampOfSmartWatch > 0) || // Smartphone requires  Flamingo Ring, Drink, Golden Color Cap and Swimsuit Top
-            (_itemType == 29 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0 && userItems.timestampOfSmartWatch > 0 && userItems.timestampOfSmartphone > 0), // Yacht requires  Flamingo Ring, Drink, Golden Color Cap, Swimsuit Top and Smartphone 
+            (_personageType == 24) || //  Flamingo Ring is always allowed
+            (_personageType == 25 && userItems.timestampOfFlamingoRing > 0) || // Drink requires  Flamingo Ring
+            (_personageType == 26 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0) || // Golden Color Cap requires  Flamingo Ring and Drink 
+            (_personageType == 27 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0) || // Swimsuit Top requires  Flamingo Ring, Drink and Golden Color Cap
+            (_personageType == 28 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0 && userItems.timestampOfSmartWatch > 0) || // Smartphone requires  Flamingo Ring, Drink, Golden Color Cap and Swimsuit Top
+            (_personageType == 29 && userItems.timestampOfFlamingoRing > 0 && userItems.timestampOfDrink > 0 && userItems.timestampOfGoldenColor > 0 && userItems.timestampOfSmartWatch > 0 && userItems.timestampOfSmartphone > 0), // Yacht requires  Flamingo Ring, Drink, Golden Color Cap, Swimsuit Top and Smartphone 
             "GoldenLama:: You must buy the previous items!"
         );
 
         // Update the corresponding timestamp
-        if(_itemType == 24){
+        if(_personageType == 24){
             userItems.timestampOfFlamingoRing = block.timestamp;
-        } else if(_itemType == 25) {
+        } else if(_personageType == 25) {
             userItems.timestampOfDrink = block.timestamp;
-        } else if(_itemType == 26) {
+        } else if(_personageType == 26) {
             userItems.timestampOfGoldenColor = block.timestamp;
-        } else if(_itemType == 27) {
+        } else if(_personageType == 27) {
             userItems.timestampOfSmartWatch = block.timestamp;
-        } else if(_itemType == 28) {
+        } else if(_personageType == 28) {
             userItems.timestampOfSmartphone = block.timestamp;
         } else {
             userItems.timestampOfYacht = block.timestamp;
             userItems.allItemsBought = true;
         }
 
-        emit LevelFiveItemPurchased(msg.sender, _itemType, block.timestamp);
+        emit LevelFiveItemPurchased(msg.sender, _personageType, block.timestamp);
     }
 
     function claim() external {
@@ -557,58 +576,58 @@ contract GoldenLama {
         }
     }
 
-    function _validatelevelOneItemInfoTypes(uint8 _itemType) private pure {
+    function _validatelevelOneItemInfoTypes(uint8 _personageType) private pure {
         require(
-            _itemType == SAND_PURCHASE_TYPE || 
-            _itemType == SEA_PURCHASE_TYPE || 
-            _itemType == SKY_PURCHASE_TYPE ||
-            _itemType == CLOUD_PURCHASE_TYPE ||
-            _itemType == SUN_PURCHASE_TYPE ||
-            _itemType == GULL_PURCHASE_TYPE
+            _personageType == SAND_PURCHASE_TYPE || 
+            _personageType == SEA_PURCHASE_TYPE || 
+            _personageType == SKY_PURCHASE_TYPE ||
+            _personageType == CLOUD_PURCHASE_TYPE ||
+            _personageType == SUN_PURCHASE_TYPE ||
+            _personageType == GULL_PURCHASE_TYPE
         );
     }
     
-    function _validatelevelTwoItemInfoTypes(uint8 _itemType) private pure {
+    function _validatelevelTwoItemInfoTypes(uint8 _personageType) private pure {
         require(
-            _itemType == PALM_PURCHASE_TYPE || 
-            _itemType == COCONUTS_PURCHASE_TYPE || 
-            _itemType == GOLD_FISH_PURCHASE_TYPE ||
-            _itemType == CRAB_PURCHASE_TYPE ||
-            _itemType == SHELLS_PURCHASE_TYPE ||
-            _itemType == COLORED_STONES_PURCHASE_TYPE
+            _personageType == PALM_PURCHASE_TYPE || 
+            _personageType == COCONUTS_PURCHASE_TYPE || 
+            _personageType == GOLD_FISH_PURCHASE_TYPE ||
+            _personageType == CRAB_PURCHASE_TYPE ||
+            _personageType == SHELLS_PURCHASE_TYPE ||
+            _personageType == COLORED_STONES_PURCHASE_TYPE
         );
     }
 
-    function _validatelevelThreeItemInfoTypes(uint8 _itemType) private pure {
+    function _validatelevelThreeItemInfoTypes(uint8 _personageType) private pure {
         require(
-            _itemType == SAND_CASTEL_PURCHASE_TYPE || 
-            _itemType == CHAISE_LOUNGE_PURCHASE_TYPE || 
-            _itemType == TOWEL_PURCHASE_TYPE ||
-            _itemType == SUNSCREEN_PURCHASE_TYPE ||
-            _itemType == BASKET_PURCHASE_TYPE ||
-            _itemType == UMBRELLA_PURCHASE_TYPE
+            _personageType == SAND_CASTEL_PURCHASE_TYPE || 
+            _personageType == CHAISE_LOUNGE_PURCHASE_TYPE || 
+            _personageType == TOWEL_PURCHASE_TYPE ||
+            _personageType == SUNSCREEN_PURCHASE_TYPE ||
+            _personageType == BASKET_PURCHASE_TYPE ||
+            _personageType == UMBRELLA_PURCHASE_TYPE
         );
     }
 
-    function _validatelevelFourItemInfoTypes(uint8 _itemType) private pure {
+    function _validatelevelFourItemInfoTypes(uint8 _personageType) private pure {
         require(
-            _itemType == BOA_PURCHASE_TYPE || 
-            _itemType == SUNGLASSES_PURCHASE_TYPE || 
-            _itemType == BASEBALL_CAP_PURCHASE_TYPE ||
-            _itemType == SWIMSUIT_TOP_PURCHASE_TYPE ||
-            _itemType == SWIMSUIT_BRIEFS_PURCHASE_TYPE ||
-            _itemType == CROCS_PURCHASE_TYPE
+            _personageType == BOA_PURCHASE_TYPE || 
+            _personageType == SUNGLASSES_PURCHASE_TYPE || 
+            _personageType == BASEBALL_CAP_PURCHASE_TYPE ||
+            _personageType == SWIMSUIT_TOP_PURCHASE_TYPE ||
+            _personageType == SWIMSUIT_BRIEFS_PURCHASE_TYPE ||
+            _personageType == CROCS_PURCHASE_TYPE
         );
     }
 
-    function _validatelevelFiveItemInfoTypes(uint8 _itemType) private pure {
+    function _validatelevelFiveItemInfoTypes(uint8 _personageType) private pure {
         require(
-            _itemType == FLAMINGO_RING_PURCHASE_TYPE || 
-            _itemType == DRINK_PURCHASE_TYPE || 
-            _itemType == GOLDEN_COLOR_PURCHASE_TYPE ||
-            _itemType == SMART_WATCH_PURCHASE_TYPE ||
-            _itemType == SMARTPHONE_PURCHASE_TYPE ||
-            _itemType == YACHT_PURCHASE_TYPE
+            _personageType == FLAMINGO_RING_PURCHASE_TYPE || 
+            _personageType == DRINK_PURCHASE_TYPE || 
+            _personageType == GOLDEN_COLOR_PURCHASE_TYPE ||
+            _personageType == SMART_WATCH_PURCHASE_TYPE ||
+            _personageType == SMARTPHONE_PURCHASE_TYPE ||
+            _personageType == YACHT_PURCHASE_TYPE
         );
     }
 }
