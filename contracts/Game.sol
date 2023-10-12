@@ -10,6 +10,7 @@ contract GoldenLama {
         uint256 profitDept;
         uint256 balanceOfCocktail;
         uint256 balanceOfCoin;
+        uint256 BNBBalance;
     }
     
     struct LevelOneItemInfo {
@@ -93,36 +94,36 @@ contract GoldenLama {
     uint8 private constant SMARTPHONE_PURCHASE_TYPE = 28;
     uint8 private constant YACHT_PURCHASE_TYPE = 29;
 
-    uint32 private constant SAND_DAILY_PROFIT = 1181;
-    uint32 private constant SKY_DAILY_PROFIT = 2396;
-    uint32 private constant SEA_DAILY_PROFIT = 3600;
-    uint32 private constant CLOUD_DAILY_PROFIT = 4870;
-    uint32 private constant SUN_DAILY_PROFIT = 6180;
-    uint32 private constant GULL_DAILY_PROFIT = 7489;
-    uint32 private constant PALM_DAILY_PROFIT = 8792;
-    uint32 private constant COCONUTS_DAILY_PROFIT = 10069;
-    uint32 private constant GOLD_FISH_DAILY_PROFIT = 11618;
-    uint32 private constant CRAB_DAILY_PROFIT = 13782;
-    uint32 private constant SHELLS_DAILY_PROFIT = 14896;
-    uint32 private constant COLORED_STONES_DAILY_PROFIT = 17075;
-    uint32 private constant SAND_CASTEL_DAILY_PROFIT = 19288;
-    uint32 private constant CHAISE_LOUNGE_DAILY_PROFIT = 21519;
-    uint32 private constant TOWEL_DAILY_PROFIT = 26052;
-    uint32 private constant SUNSCREEN_DAILY_PROFIT = 34707;
-    uint32 private constant BASKET_DAILY_PROFIT = 43715;
-    uint32 private constant UMBRELLA_DAILY_PROFIT = 54860;
-    uint32 private constant BOA_DAILY_PROFIT = 65919;
-    uint32 private constant SUNGLASSES_DAILY_PROFIT = 77639;
-    uint32 private constant BASEBALL_CAP_DAILY_PROFIT = 88888;
-    uint32 private constant SWIMSUIT_TOP_DAILY_PROFIT = 111482;
-    uint32 private constant SWIMSUIT_BRIEFS_DAILY_PROFIT = 146100;
-    uint32 private constant CROCS_DAILY_PROFIT = 179856;
-    uint32 private constant FLAMINGO_RING_DAILY_PROFIT = 227790;
-    uint32 private constant DRINK_DAILY_PROFIT = 273660;
-    uint32 private constant GOLDEN_COLOR_DAILY_PROFIT = 343249;
-    uint32 private constant SMART_WATCH_DAILY_PROFIT = 413602;
-    uint32 private constant SMARTPHONE_DAILY_PROFIT = 533271;
-    uint32 private constant YACHT_DAILY_PROFIT = 705384;
+    uint32 private constant SAND_DAILY_PROFIT = 1320;
+    uint32 private constant SKY_DAILY_PROFIT = 2640;
+    uint32 private constant SEA_DAILY_PROFIT = 3960;
+    uint32 private constant CLOUD_DAILY_PROFIT = 5280;
+    uint32 private constant SUN_DAILY_PROFIT = 6600;
+    uint32 private constant GULL_DAILY_PROFIT = 7920;
+    uint32 private constant PALM_DAILY_PROFIT = 9240;
+    uint32 private constant COCONUTS_DAILY_PROFIT = 10560;
+    uint32 private constant GOLD_FISH_DAILY_PROFIT = 12100;
+    uint32 private constant CRAB_DAILY_PROFIT = 14300;
+    uint32 private constant SHELLS_DAILY_PROFIT = 15400;
+    uint32 private constant COLORED_STONES_DAILY_PROFIT = 17600;
+    uint32 private constant SAND_CASTEL_DAILY_PROFIT = 19800;
+    uint32 private constant CHAISE_LOUNGE_DAILY_PROFIT = 22000;
+    uint32 private constant TOWEL_DAILY_PROFIT = 26400;
+    uint32 private constant SUNSCREEN_DAILY_PROFIT = 35200;
+    uint32 private constant BASKET_DAILY_PROFIT = 44000;
+    uint32 private constant UMBRELLA_DAILY_PROFIT = 55000;
+    uint32 private constant BOA_DAILY_PROFIT = 66000;
+    uint32 private constant SUNGLASSES_DAILY_PROFIT = 77000;
+    uint32 private constant BASEBALL_CAP_DAILY_PROFIT = 88000;
+    uint32 private constant SWIMSUIT_TOP_DAILY_PROFIT = 110000;
+    uint32 private constant SWIMSUIT_BRIEFS_DAILY_PROFIT = 14300;
+    uint32 private constant CROCS_DAILY_PROFIT = 176000;
+    uint32 private constant FLAMINGO_RING_DAILY_PROFIT = 220000;
+    uint32 private constant DRINK_DAILY_PROFIT = 264000;
+    uint32 private constant GOLDEN_COLOR_DAILY_PROFIT = 330000;
+    uint32 private constant SMART_WATCH_DAILY_PROFIT = 396000;
+    uint32 private constant SMARTPHONE_DAILY_PROFIT = 506000;
+    uint32 private constant YACHT_DAILY_PROFIT = 660000;
 
     uint64 private constant PRICE_OF_COCKTAIL = 30000000000000;
     uint64 private constant PRICE_OF_COIN = 300000000000;
@@ -144,11 +145,7 @@ contract GoldenLama {
     //events
     event CocktailBought(address indexed buyer, uint256 indexed count, uint256 indexed timestamp);
     event CocktailSwap(address indexed user, uint256 indexed count, uint256 indexed timestamp);
-    event LevelOneItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
-    event LevelTwoItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
-    event LevelThreeItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
-    event LevelFourItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
-    event LevelFiveItemPurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
+    event PersonagePurchased(address indexed user, uint256 indexed typeOfItem, uint256 indexed timestamp);
     event Claimed(address indexed user, uint256 indexed profit, uint256 indexed timestamp);
 
     modifier onlyAdmin(){
@@ -189,8 +186,10 @@ contract GoldenLama {
         uint256 amountToReturn = msg.value - (_count * PRICE_OF_COCKTAIL); 
         uint256 amountToTransfer = msg.value - amountToReturn;
 
-        if(userInfo[msg.sender].userId == 0) {
-            userInfo[msg.sender].userId = usersCount;
+        UserInfo storage user = userInfo[msg.sender];
+
+        if(user.userId == 0) {
+            user.userId = usersCount;
             idToHisAddress[usersCount] = msg.sender;
             ++usersCount;
         }
@@ -201,7 +200,8 @@ contract GoldenLama {
         payable(owner).transfer(amountToTransfer / 10);
         payable(address(this)).transfer(amountToTransfer * 9 / 10);
 
-        userInfo[msg.sender].balanceOfCocktail += _count;
+        user.balanceOfCocktail += _count;
+        user.BNBBalance = (msg.sender).balance;
 
         address referrer = addressToHisReferrer[msg.sender];
         if(referrer != address(0)) {
@@ -223,12 +223,19 @@ contract GoldenLama {
     }
 
     function sellCois(uint256 _count) external {
-        require(userInfo[msg.sender].balanceOfCoin >= _count, "GoldenLama:: Insufficient balance of cocktails!");
-        userInfo[msg.sender].balanceOfCoin -= _count;
+        UserInfo storage user = userInfo[msg.sender];
+        require(user.balanceOfCoin >= _count, "GoldenLama:: Insufficient balance of cocktails!");
+        user.balanceOfCoin -= _count;
         uint256 amountToTransfer = _count * PRICE_OF_COIN;
 
         (bool sent,) = payable(msg.sender).call{value:amountToTransfer}("");
-        require(sent , "GoldenLama:: not sent!");
+        require(sent , "GoldenLama:: Not sent!");
+
+        user.BNBBalance = (msg.sender).balance;
+    }
+
+    function getUserInfo(address _user) external view returns(UserInfo memory) {
+        return userInfo[_user];
     }
 
     function purchasePersonage(uint8 _personageType) external {
@@ -248,6 +255,9 @@ contract GoldenLama {
         if(_personageType > 23 && _personageType < 30) {
             _purchaselevelFiveItem(_personageType);
         }
+
+        emit PersonagePurchased(msg.sender, _personageType, block.timestamp);
+
     }
 
     function claim() external {
@@ -425,7 +435,6 @@ contract GoldenLama {
             userItems.allItemsBought = true;
         }
 
-        emit LevelOneItemPurchased(msg.sender, _personageType, block.timestamp);
     }
 
     function _purchaselevelTwoItem(uint8 _personageType) private {
@@ -462,8 +471,6 @@ contract GoldenLama {
             userItems.timestampOfColoredStones = block.timestamp;
             userItems.allItemsBought = true;
         }
-
-        emit LevelTwoItemPurchased(msg.sender, _personageType, block.timestamp);
 
     }
 
@@ -503,7 +510,6 @@ contract GoldenLama {
             userItems.allItemsBought = true;
         }
         
-        emit LevelThreeItemPurchased(msg.sender, _personageType, block.timestamp);
     }
 
     function _purchaselevelFourItem(uint8 _personageType) private {
@@ -542,7 +548,6 @@ contract GoldenLama {
             userItems.allItemsBought = true;
         }
 
-        emit LevelFourItemPurchased(msg.sender, _personageType, block.timestamp);
     }
 
     function _purchaselevelFiveItem(uint8 _personageType) private {
@@ -581,7 +586,6 @@ contract GoldenLama {
             userItems.allItemsBought = true;
         }
 
-        emit LevelFiveItemPurchased(msg.sender, _personageType, block.timestamp);
     }
 
     function _validatelevelOneItemInfoTypes(uint8 _personageType) private pure {
